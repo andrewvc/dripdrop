@@ -20,7 +20,7 @@ To run a simple example, feeding data to a websockets UI
 
 ## Example Topology
 
-![topology](http://github.com/andrewvc/dripdrop/raw/master/doc/doc_img/topology.png "Topology")
+![topology](http://github.com/andrewvc/dripdrop/raw/master/doc_img/topology.png "Topology")
 
 ## Note on Patches/Pull Requests
  
