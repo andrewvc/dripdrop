@@ -2,6 +2,7 @@ require 'rubygems'
 require 'ffi-rzmq'
 require 'zmqmachine'
 require 'uri'
+require 'dripdrop/message'
 
 class DripDrop
   class CollectorPub
@@ -18,41 +19,56 @@ class DripDrop
       @socket.send(message)
     end
   end
+   
   class CollectorSub
-    attr_reader :context, :socket, :address
+    attr_reader :context, :socket, :address, :collector
     
-    def initialize(context,address, publisher)
-      @context = context
-      @address = address
+    def initialize(context, collector, address, publisher=nil)
+      @context   = context
+      @collector = collector
+      @address   = address
       @publisher = publisher
     end
     
     def on_attach(socket)
-      socket.bind(@address)
+      socket.connect(@address)
       socket.subscribe ''
     end
     
     def on_readable(socket, messages)
-      messages.each {|message| @publisher.send_message(message) }
+      messages.each do |message|
+        @collector.on_recv(DripDrop::Message.parse(message.copy_out_string))
+      end
     end
   end
   
   class Collector
     attr_reader :sub_reactor, :sub_addr, :pub_addr
-    def initialize(sub_addr='tcp://127.0.0.1:2900',pub_addr='tcp://127.0.0.1:2901')
-      @pub_addr    = URI.parse(pub_addr)
+    def initialize(sub_addr='tcp://127.0.0.1:2900',pub_addr=nil)
       sub_addr_uri = URI.parse(sub_addr)
-      @sub_addr    = ZM::Address.new(sub_addr_uri.host, sub_addr_uri.port.to_i, sub_addr_uri.scheme.to_sym)
+      host, port   = sub_addr_uri.host, sub_addr_uri.port.to_i
+      scheme       = sub_addr_uri.scheme.to_sym
+      @sub_addr    = ZM::Address.new(host, port, scheme)
       @sub_reactor = ZM::Reactor.new(:sub_reactor)
       
-      @publisher = CollectorPub.new(@pub_addr)
+      if @pub_addr
+        @pub_addr  = URI.parse(pub_addr)
+        @publisher = CollectorPub.new(@pub_addr)
+      end
     end
 
     def run
+      puts "Run"
       @sub_reactor.run do |context|
-        context.sub_socket CollectorSub.new(context, @sub_addr,@publisher)
+        context.sub_socket CollectorSub.new(context,self,@sub_addr,@publisher)
       end
-      @sub_reactor.join
+      @sub_reactor
     end
+
+    def publish(message)
+      @publisher.send_string(message.encoded)
+    end
+     
+    def on_recv(message); end
   end
 end

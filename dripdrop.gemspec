@@ -9,10 +9,10 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrew Cholakian"]
-  s.date = %q{2010-08-13}
+  s.date = %q{2010-08-14}
   s.description = %q{0MQ App stats}
   s.email = %q{andrew@andrewvc.com}
-  s.executables = ["drip-collector", "drip-publisher"]
+  s.executables = ["drip-collector", "drip-mlogger", "drip-publisher"]
   s.extra_rdoc_files = [
     "LICENSE",
      "README.rdoc"
@@ -23,11 +23,23 @@ Gem::Specification.new do |s|
      "LICENSE",
      "README.rdoc",
      "Rakefile",
+     "VERSION",
+     "bin/drip-collector",
+     "bin/drip-mlogger",
+     "bin/drip-publisher",
+     "dripdrop.gemspec",
      "example/agent_test.rb",
+     "example/forwarder.cfg",
+     "example/web/public/js/jquery.gracefulWebSocket.js",
+     "example/web/public/js/jquery.js",
+     "example/web/public/js/jquery.websocket.js",
+     "example/web/public/view.html",
+     "example/web/server.rb",
      "lib/dripdrop.rb",
      "lib/dripdrop/agent.rb",
      "lib/dripdrop/collector.rb",
      "lib/dripdrop/message.rb",
+     "lib/dripdrop/mlogger.rb",
      "lib/dripdrop/publisher.rb",
      "lib/dripdrop/webserver.rb"
   ]
