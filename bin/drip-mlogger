@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
+require 'rubygems'
 require 'dripdrop/mlogger'
-require 'dripdrop/message'
 
 mlogger = DripDrop::MLogger.new
 puts "Starting MLogger"

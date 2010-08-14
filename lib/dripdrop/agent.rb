@@ -1,4 +1,4 @@
-require 'rubygems'
+require 'dripdrop/message'
 require 'zmq'
 require 'bert'
 
