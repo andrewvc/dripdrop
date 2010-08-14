@@ -1,28 +1,28 @@
-= dripdrop
+# dripdrop
 
-0MQ App Monitoring. 
+0MQ Based App Event Monitoring / processing 
 
-== An example with a WebSocket UI:
+## An example with a WebSocket UI:
 
 To run a simple example, feeding data to a websockets UI
-  #Aggregate agents with zmq_forwarder (comes with zmq)
-  $ zmq_forwarder examples/forwarder.cfg
+#### Aggregate agents with zmq_forwarder (comes with zmq)
+    $ zmq_forwarder examples/forwarder.cfg
 
-  #Start up the drip drop publisher example
-  $ drip-publisher
+#### Start up the drip drop publisher example
+    $ drip-publisher
 
-  #Assuming you have mongodb running
-  $ drip-mlogger
+#### Assuming you have mongodb running
+    $ drip-mlogger
   
-  #Start up a webserver to host the HTML/JS for a sample websocket client
-  $ cd DRIPDROPFOLDER/example/web/
-  $ ruby server
+#### Start up a webserver to host the HTML/JS for a sample websocket client
+    $ cd DRIPDROPFOLDER/example/web/
+    $ ruby server
 
-== Example Topology
+## Example Topology
 
-link:doc_img/topology.png
+![topology](http://github.com/andrewvc/dripdrop/raw/master/doc/doc_img/topology.png "Topology")
 
-== Note on Patches/Pull Requests
+## Note on Patches/Pull Requests
  
 * Fork the project.
 * Make your feature addition or bug fix.
@@ -30,6 +30,6 @@ link:doc_img/topology.png
   (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
 * Send me a pull request. Bonus points for topic branches.
 
-== Copyright
+## Copyright
 
 Copyright (c) 2010 Andrew Cholakian. See LICENSE for details.
