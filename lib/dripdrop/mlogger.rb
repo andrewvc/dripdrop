@@ -1,9 +1,6 @@
-require 'rubygems'
-require 'ffi-rzmq'
-require 'zmqmachine'
+require 'dripdrop/collector'
 require 'uri'
 require 'mongo'
-require 'dripdrop/collector'
 
 class DripDrop
   class MLoggerCollector < Collector

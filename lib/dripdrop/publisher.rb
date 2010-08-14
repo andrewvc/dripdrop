@@ -1,11 +1,8 @@
-require 'rubygems'
+require 'dripdrop/collector'
 require 'em-synchrony'
 require 'em-websocket'
-require 'ffi-rzmq'
-require 'zmqmachine'
 require 'uri'
 require 'json'
-require 'dripdrop/collector'
 
 class DripDrop
   class PublisherCollector < Collector
@@ -15,7 +12,6 @@ class DripDrop
     
     def add_websocket(ws)
       websockets << ws
-      ws.send 'socket added'
     end
 
     def rem_websocket(ws)
@@ -42,7 +38,6 @@ class DripDrop
         host, port =  @ws_address.host, @ws_address.port.to_i
         EventMachine::WebSocket.start(:host => host, :port => port, :debug => true) do |ws|
           ws.onopen do
-            ws.send("WS Connected")
             @sub_collector.add_websocket(ws)
           end
           ws.onclose do
