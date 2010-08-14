@@ -10,10 +10,17 @@ To run a simple example, feeding data to a websockets UI
 
   #Start up the drip drop publisher example
   $ drip-publisher
+
+  #Assuming you have mongodb running
+  $ drip-mlogger
   
-  #Start up a webserver to host the HTML for a sample websocket client
+  #Start up a webserver to host the HTML/JS for a sample websocket client
   $ cd DRIPDROPFOLDER/example/web/
   $ ruby server
+
+== Example Topology
+
+link:doc_img/topology.png
 
 == Note on Patches/Pull Requests
  
