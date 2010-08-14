@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+require 'dripdrop/mlogger'
+require 'dripdrop/message'
+
+mlogger = DripDrop::MLogger.new
+puts "Starting MLogger"
+mlogger.run
+puts "Done"

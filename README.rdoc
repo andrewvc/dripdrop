@@ -5,11 +5,13 @@
 == An example with a WebSocket UI:
 
 To run a simple example, feeding data to a websockets UI
-  #Start up the drip drop services
-  $ drip-collector
+  #Aggregate agents with zmq_forwarder (comes with zmq)
+  $ zmq_forwarder examples/forwarder.cfg
+
+  #Start up the drip drop publisher example
   $ drip-publisher
   
-  #Start up a webserver to run a sample websocket client
+  #Start up a webserver to host the HTML for a sample websocket client
   $ cd DRIPDROPFOLDER/example/web/
   $ ruby server
 
