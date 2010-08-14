@@ -21,6 +21,8 @@ To run a simple example, feeding data to a websockets UI
 
 ## Example Topology
 
+You can add as many listeners as you want, or reconfigure things any way you want. Heres how I plan on using it.
+
 ![topology](http://github.com/andrewvc/dripdrop/raw/master/doc_img/topology.png "Topology")
 
 ## Sending Messages
