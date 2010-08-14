@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+require 'dripdrop/collector'
+
+puts "Starting Collector"
+DripDrop::Collector.new.run
+puts "Ended"

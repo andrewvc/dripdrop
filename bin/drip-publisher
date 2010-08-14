@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+require 'dripdrop/publisher'
+require 'dripdrop/message'
+
+publisher = Publisher.new
+puts "Starting Publisher"
+publisher.run
+puts "Done"

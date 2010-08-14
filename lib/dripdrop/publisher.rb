@@ -19,12 +19,11 @@ class PublisherSub
   def on_attach(socket)
     @websocket.send("ZMQ Attached")
     socket.subscribe ''
-    address = ZM::Address.new '127.0.0.1', 2901, :tcp
+    address = ZM::Address.new @address.host, @address.port.to_i, @address.scheme.to_sym
     rc = socket.connect(address)
   end
 
   def on_readable(socket,messages)
-    puts "SubRecv"
     @websocket.send messages.map {|m| DripDrop::Message.parse(m.copy_out_string).body}
   end
 end
@@ -39,11 +38,8 @@ class Publisher
   end
 
   def run
-    puts "Running"
     EventMachine.synchrony do
-      puts "Synchrony"
       EventMachine::WebSocket.start(:host => @ws_address.host, :port => @ws_address.port.to_i, :debug => true) do |ws|
-        puts("WS Starting")
         @ws = ws
         @ws.onopen do
           @ws.send("WS Connected")

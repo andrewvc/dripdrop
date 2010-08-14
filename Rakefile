@@ -5,13 +5,15 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "dripdrop"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
-    gem.email = "andrew@cocodot.com"
+    gem.summary = %Q{0MQ App Stats}
+    gem.description = %Q{0MQ App stats}
+    gem.email = "andrew@andrewvc.com"
     gem.homepage = "http://github.com/andrewvc/dripdrop"
     gem.authors = ["Andrew Cholakian"]
-    gem.add_development_dependency "thoughtbot-shoulda", ">= 0"
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+    gem.add_dependency('zmq')
+    gem.add_dependency('ffi')
+    gem.add_dependency('ffi-rzmq')
+    gem.add_dependency('zmqmachine')
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError
