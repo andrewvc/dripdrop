@@ -28,13 +28,11 @@ class DripDrop
     end
     
     def on_attach(socket)
-      puts "CollectorSub Attached on #{@address}"
       socket.bind(@address)
       socket.subscribe ''
     end
     
     def on_readable(socket, messages)
-      puts "MSG"
       messages.each {|message| @publisher.send_message(message) }
     end
   end
@@ -55,7 +53,6 @@ class DripDrop
         context.sub_socket CollectorSub.new(context, @sub_addr,@publisher)
       end
       @sub_reactor.join
-      puts "Done"
     end
   end
 end
