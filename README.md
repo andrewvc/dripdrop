@@ -5,10 +5,10 @@ A work in progress.
 
 # Why use dripdrop?
 
-You want to record stats for your app, or otherwise process messages.
+You want to asynchronously process / monitor arbitrary messages from your app.
 dripdrop does this well for a few reasons.
 
-* It's fast. dripdrop doesn't slow down your app. 0MQ + Bert are fast. Sending a message never blocks, even if the conn dies.
+* It's fast. dripdrop doesn't slow down your app. 0MQ + Bert are fast. Sending a message never blocks.
 * It's flexible. By leveraging 0MQ pub/sub sockets you can have many different processors (collectors in dripdrop) that don't impact or even care about each other
 * It's easy. Check out the agent and collector examples below. You can be processing stuff in no time.
 
@@ -17,7 +17,7 @@ dripdrop does this well for a few reasons.
 ### You'll need to have the zmq dev libs on your machine. On OSX this means
 
 1. Download and build zeromq from [zeromq.org](http://www.zeromq.org/area:download)
-1. The agent just uses the plain zmq gem, which runs fine on ruby 1.8.7+, this is so you can use it in say your rails app. Everything else needs ruby 1.9.2 or jruby and uses Chuck Remes [ffi-rzmq](http://github.com/chuckremes/ffi-rzmq), and [zmqmachine](http://github.com/chuckremes/zmqmachine) gems which you must build yourself. I recommend using rvm to enable the use of multiple rubies on one machine.
+1. The agent just uses the plain zmq gem, which runs fine on ruby 1.8.7+, *EDIT!* If you use my fork of ffi-rzmq everything should work with 1.8.7! This isn't fully tested yet though *END EDIT*  this is so you can use it in say your rails app. Everything else needs ruby 1.9.2 or jruby and uses Chuck Remes [ffi-rzmq](http://github.com/chuckremes/ffi-rzmq), and [zmqmachine](http://github.com/chuckremes/zmqmachine) gems which you must build yourself. I recommend using rvm to enable the use of multiple rubies on one machine.
 1. zmq_forwarder comes with zmq, use this to aggregate agent messages using the example config shown below
 
 ### To run a simple example, feeding data to a websockets UI
