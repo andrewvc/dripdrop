@@ -5,14 +5,14 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dripdrop}
-  s.version = "0.0.2"
+  s.version = "0.0.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrew Cholakian"]
   s.date = %q{2010-08-14}
   s.description = %q{0MQ App stats}
   s.email = %q{andrew@andrewvc.com}
-  s.executables = ["drip-collector", "drip-mlogger", "drip-publisher"]
+  s.executables = ["drip-mlogger", "drip-publisher"]
   s.extra_rdoc_files = [
     "LICENSE",
      "README.md"
@@ -24,7 +24,6 @@ Gem::Specification.new do |s|
      "README.md",
      "Rakefile",
      "VERSION",
-     "bin/drip-collector",
      "bin/drip-mlogger",
      "bin/drip-publisher",
      "doc_img/topology.png",
@@ -41,8 +40,7 @@ Gem::Specification.new do |s|
      "lib/dripdrop/collector.rb",
      "lib/dripdrop/message.rb",
      "lib/dripdrop/mlogger.rb",
-     "lib/dripdrop/publisher.rb",
-     "lib/dripdrop/webserver.rb"
+     "lib/dripdrop/publisher.rb"
   ]
   s.homepage = %q{http://github.com/andrewvc/dripdrop}
   s.rdoc_options = ["--charset=UTF-8"]
