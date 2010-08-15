@@ -24,8 +24,11 @@ class DripDrop
     end
   end
 
+
+  #WebSocket server that rebroadcasts all DripDrop::Messages it subscribes to as JSON
   class Publisher
     attr_reader :sub_address, :sub_collector, :ws_address
+     
     def initialize(sub_address='tcp://127.0.0.1:2901',ws_address='ws://127.0.0.1:2902')
       @sub_address   = URI.parse(sub_address)
       @ws_address    = URI.parse(ws_address)

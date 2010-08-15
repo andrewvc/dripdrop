@@ -1,7 +1,0 @@
-#!/usr/bin/env ruby
-require 'rubygems'
-require 'dripdrop/collector'
-
-puts "Starting Collector"
-DripDrop::Collector.new.run
-puts "Ended"

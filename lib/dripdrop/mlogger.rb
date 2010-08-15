@@ -13,6 +13,7 @@ class DripDrop
     end
   end
 
+  #MongoDB Logger for DripDrop::Message messages
   class MLogger
     attr_reader :sub_address, :sub_reactor, :mongo_host, :mongo_port, :mongo_db,
                 :mongo_connection, :mongo_collection
