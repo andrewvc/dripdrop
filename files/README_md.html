@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>File: README.md</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href=".././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+  <div id="fileHeader">
+    <h1>README.md</h1>
+    <table class="header-table">
+    <tr class="top-aligned-row">
+      <td><strong>Path:</strong></td>
+      <td>README.md
+      </td>
+    </tr>
+    <tr class="top-aligned-row">
+      <td><strong>Last Update:</strong></td>
+      <td>Sun Aug 15 08:50:41 -0700 2010</td>
+    </tr>
+    </table>
+  </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <p>
+# dripdrop
+</p>
+<p>
+0MQ Based App Event Monitoring / processing. A work in progress.
+</p>
+<p>
+# Why use dripdrop?
+</p>
+<p>
+You want to asynchronously process / monitor arbitrary messages from your
+app. dripdrop does this well for a few reasons.
+</p>
+<ul>
+<li>It&#8216;s fast. dripdrop doesn&#8216;t slow down your app. 0MQ + Bert are
+fast. Sending a message never blocks.
+
+</li>
+<li>It&#8216;s flexible. By leveraging 0MQ pub/sub sockets you can have many
+different processors (collectors in dripdrop) that don&#8216;t impact or
+even care about each other
+
+</li>
+<li>It&#8216;s easy. Check out the agent and collector examples below. You can
+be processing stuff in no time.
+
+</li>
+</ul>
+<p>
+## An example with a WebSocket UI:
+</p>
+<p>
+### You&#8216;ll need to have the zmq dev libs on your machine. On OSX this
+means
+</p>
+<ol>
+<li>Download and build zeromq from [zeromq.org](<a
+href="http://www.zeromq.org/area:download">www.zeromq.org/area:download</a>)
+
+</li>
+<li>The agent just uses the plain zmq gem, which runs fine on ruby 1.8.7+,
+*EDIT!* If you use my fork of ffi-rzmq everything should work with 1.8.7!
+This isn&#8216;t fully tested yet though *END EDIT* this is so you can use
+it in say your rails app. Everything else needs ruby 1.9.2 or jruby and
+uses Chuck Remes [ffi-rzmq](<a
+href="http://github.com/chuckremes/ffi-rzmq">github.com/chuckremes/ffi-rzmq</a>),
+and [zmqmachine](<a
+href="http://github.com/chuckremes/zmqmachine">github.com/chuckremes/zmqmachine</a>)
+gems which you must build yourself. I recommend using rvm to enable the use
+of multiple rubies on one machine.
+
+</li>
+<li>zmq_forwarder comes with zmq, use this to aggregate agent messages using
+the example config shown below
+
+</li>
+</ol>
+<p>
+### To run a simple example, feeding data to a websockets UI
+</p>
+<p>
+#### Aggregate agents with zmq_forwarder (comes with zmq)
+</p>
+<pre>
+    $ zmq_forwarder examples/forwarder.cfg
+</pre>
+<p>
+#### Start up the drip drop publisher example
+</p>
+<pre>
+    $ drip-publisher
+</pre>
+<p>
+#### Assuming you have mongodb running
+</p>
+<pre>
+    $ drip-mlogger
+</pre>
+<p>
+#### Start up a webserver to host the HTML/JS for a sample websocket client
+</p>
+<pre>
+    $ cd DRIPDROPFOLDER/example/web/
+    $ ruby server
+</pre>
+<p>
+## Example Topology
+</p>
+<p>
+You can add as many listeners as you want, or reconfigure things any way
+you want. Heres how I plan on using it.
+</p>
+<p>
+![topology](<img
+src="http://github.com/andrewvc/dripdrop/raw/master/doc_img/topology.png"
+/> &quot;Topology&quot;)
+</p>
+<p>
+## Sending Messages
+</p>
+<p>
+Sending messages is easy with the agent, an example:
+</p>
+<pre>
+    require 'rubygems'
+    require 'dripdrop/agent'
+
+    agent = DripDrop::Agent.new('tcp://127.0.0.1:2900')
+
+    loop do
+      #Test is the message name, this is the first part of the 0MQ message, used for filtering
+      #at the 0MQ sub socket level, :head is always a hash,  :body is freeform
+      #EVERYTHING must be serializable to BERT
+      agent.send_message('test', :body =&gt; 'hello', :head =&gt; {:key =&gt; 'value'})
+      puts &quot;SEND&quot;
+      sleep 1
+    end
+</pre>
+<p>
+## Writing a custom message processor
+</p>
+<p>
+Writing custom message processors is super easy, just create a new <a
+href="../classes/DripDrop/Collector.html">DripDrop::Collector</a> and run
+it. <a href="../classes/DripDrop/Collector.html">DripDrop::Collector</a> is
+based on Chuck Remes&#8217; awesome zmqmachine, an evented 0MQ processor.
+Heres&#8217; the MongoDB logger as an example:
+</p>
+<pre>
+    require 'rubygems'
+    require 'mongo'
+    require 'dripdrop/collector'
+
+    class DripDrop
+      class MLoggerCollector &lt; Collector
+        attr_accessor :mongo_collection
+
+        #Messages are a DripDrop::Message
+        def on_recv(message)
+          if @mongo_collection
+            @mongo_collection.insert(message.to_hash)
+          end
+        end
+      end
+
+      class MLogger
+        attr_reader :sub_address, :sub_reactor, :mongo_host, :mongo_port, :mongo_db,
+                    :mongo_connection, :mongo_collection
+
+        def initialize(sub_address='tcp://127.0.0.1:2901',mhost='127.0.0.1',mport=27017,mdb='dripdrop')
+          @sub_address   = URI.parse(sub_address)
+          @sub_collector = MLoggerCollector.new('tcp://127.0.0.1:2901')
+
+          @mongo_host, @mongo_port, @mongo_db = mhost, mport, mdb
+          @mongo_connection = Mongo::Connection.new(@mongo_host,@mongo_port).db(@mongo_db)
+          @mongo_collection = @mongo_connection.collection('raw')
+        end
+
+        def run
+          @sub_collector.mongo_collection = @mongo_collection
+          @sub_collector.run.join
+        end
+      end
+    end
+</pre>
+<p>
+## Note on Patches/Pull Requests
+</p>
+<ul>
+<li>Fork the project.
+
+</li>
+<li>Make your feature addition or bug fix.
+
+</li>
+<li>Commit, do not mess with rakefile, version, or history. (if you want to
+have your own version, that is fine but bump version in a commit by itself
+I can ignore when I pull)
+
+</li>
+<li>Send me a pull request. Bonus points for topic branches.
+
+</li>
+</ul>
+<p>
+## Copyright
+</p>
+<p>
+Copyright (c) 2010 Andrew Cholakian. See LICENSE for details.
+</p>
+
+    </div>
+
+
+   </div>
+
+
+  </div>
+
+
+    <!-- if includes -->
+
+    <div id="section">
+
+
+
+
+
+      
+
+
+    <!-- if method_list -->
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>
