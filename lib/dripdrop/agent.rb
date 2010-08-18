@@ -1,5 +1,6 @@
 require 'dripdrop/message'
-require 'zmq'
+require 'ffi-rzmq'
+require 'uri'
 require 'bert'
 
 class DripDrop
@@ -9,15 +10,14 @@ class DripDrop
     
     #address should be a string like tcp://127.0.0.1
     def initialize(address)
-      @address = address
       @context = ZMQ::Context.new(1)
       @socket  = @context.socket(ZMQ::PUB)
-      @socket.connect(@address)
+      @socket.connect(address)
     end
 
     #Sends a DripDrop::Message to the socket
     def send_message(name,body,head={})
-      puts @socket.send(DripDrop::Message.new(name,:body => body, :head => head).encoded, 0)
+      @socket.send_string(DripDrop::Message.new(name,:body => body, :head => head).encoded, 0)
     end
   end
 end

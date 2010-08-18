@@ -10,8 +10,9 @@ begin
     gem.email = "andrew@andrewvc.com"
     gem.homepage = "http://github.com/andrewvc/dripdrop"
     gem.authors = ["Andrew Cholakian"]
-    gem.add_dependency('zmq')
     gem.add_dependency('ffi')
+    gem.add_dependency('ffi-rzmq')
+    gem.add_dependency('ffi-zmqmachine')
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError

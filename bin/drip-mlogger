@@ -1,8 +1,0 @@
-#!/usr/bin/env ruby
-require 'rubygems'
-require 'dripdrop/mlogger'
-
-mlogger = DripDrop::MLogger.new
-puts "Starting MLogger"
-mlogger.run
-puts "Done"
