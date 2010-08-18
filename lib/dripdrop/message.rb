@@ -39,6 +39,12 @@ class DripDrop
 
     #Parses an encoded message
     def self.parse(msg)
+      #This makes parsing ZMQ messages less painful, even if its ugly here
+      #We check the class name as a string if case we don't have ZMQ loaded
+      if msg.class.to_s == 'ZMQ::Message'
+        msg = msg.copy_out_string 
+        return nil if msg.empty?
+      end
       name, encoded_body = msg.split("\0",2)
       decoded = BERT.decode(encoded_body)
       self.new(name, :head => decoded[:head], :body => decoded[:body])
