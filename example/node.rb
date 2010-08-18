@@ -23,40 +23,41 @@ ddn = DripDrop::Node.new do |node|
   ###
   ws   = node.websocket(ws_addr)
   #Setup a websockets server
-  ws.on_open {|ws| 
-    puts "CONNECTED"
-    #Listens to what comes out of the forwarder
-    #on_recv parses messages assuming them to be in the DripDrop::Message format
-    node.zmq_subscribe(forwarder_pub_addr).on_recv do |message|
-      puts "Sending WS message"
+  ws.on_open {|ws|
+    ws.send('Sock Open')
+    #Receive an internal message from somewhere within this block. This is necessary since within
+    #A single process only one app can connect to a given ZMQ socket. This is likely fixable, and therefore is a bug.
+    #Still, this could be a useful mechanism
+    node.recv_internal(:websockets) {|message|
       ws.send(message.to_hash.to_json)
-    end
+    }
   }.on_recv {|message,ws|
     ws.send "Something's come over the socket!"
   }.on_close {
-    puts "WS Closed"
+    ws.send "SOCK CLOSE"
   }
-
+  
   ###
   ### A simple listening endpoint
   ###
   node.zmq_subscribe(forwarder_pub_addr).on_recv do |message|
-    puts "Message received: #{message.inspect}"
+    node.send_internal(:websockets,message)
+    print '.'
   end
-
   
   #To test it out, lets run some messages through
   Thread.new do
-    zpub_tester = node.zmq_publish('tcp://127.0.0.1:2900')
+    zpub_tester = node.zmq_publish('tcp://127.0.0.1:2900', :socket_ctype => :connect)
     loop do
       zpub_tester.send_message(DripDrop::Message.new('test/message', :body => [1,2,{}]))
-      sleep 1
+      sleep 2
     end
   end
 
 end
 #Let's also fire up sinatra, that way people can actually view the web socket
 class WebServer < Sinatra::Base
+  set :logging, false
   get '/' do
     %%
       <html>
@@ -90,6 +91,7 @@ class WebServer < Sinatra::Base
     %
   end
 end
+puts "Starting webserver on http://localhost:4567"
 WebServer.run! :host => 'localhost', :port => 4567
 
-ddn.join
+#ddn.join #Would be necessary, but sinatra blocks the app for us
