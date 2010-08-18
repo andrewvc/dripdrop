@@ -27,14 +27,13 @@ class DripDrop
     
     def on_readable(socket, messages)
       messages.each do |message|
-        puts "ZMQSub recv" if @debug
         case @recv_mode
         when :parse
           message = DripDrop::Message.parse(message.copy_out_string)
         when :copy_str
           message = message.copy_out_string
         end
-        @recv_cbak.call(message,self)
+        @recv_cbak.call(message)
       end
     end
     
@@ -100,14 +99,14 @@ class DripDrop
           EventMachine::start_server(host,port,ws_conn,:debug => @debug) do |ws|
             @ws = ws
             @ws.onopen do
-              @onopen_handler.call(ws)
+              @onopen_handler.call(ws) if @onopen_handler
             end
             @ws.onmessage do |message|
               message = message.copy_out_string if @raw
-              @onmessage_handler.call(message,ws)
+              @onmessage_handler.call(message,ws) if @onmessage_handler
             end
             @ws.onclose do
-              @onclose_handler.call()
+              @onclose_handler.call() if @onclose_handler
             end
           end
         end   

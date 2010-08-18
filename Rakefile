@@ -13,6 +13,8 @@ begin
     gem.add_dependency('ffi')
     gem.add_dependency('ffi-rzmq')
     gem.add_dependency('ffi-zmqmachine')
+    gem.add_dependency('bert')
+    gem.add_dependency('json')
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError
