@@ -17,7 +17,16 @@ ddn = DripDrop::Node.new do |node|
   node.zmq_subscribe(forwarder_sub_addr,:socket_ctype => :bind).on_recv_raw do |message|
     forwarder_pub.send_message(message)
   end
+
+  ###
+  ### A simple listening endpoint
+  ###
+  node.zmq_subscribe(forwarder_pub_addr).on_recv do |message|
+    node.send_internal(:websockets,message)
+    print '.'
+  end
   
+
   ###
   ### A Web sockets adapter
   ###
@@ -37,14 +46,6 @@ ddn = DripDrop::Node.new do |node|
     ws.send "SOCK CLOSE"
   }
   
-  ###
-  ### A simple listening endpoint
-  ###
-  node.zmq_subscribe(forwarder_pub_addr).on_recv do |message|
-    node.send_internal(:websockets,message)
-    print '.'
-  end
-  
   #To test it out, lets run some messages through
   Thread.new do
     zpub_tester = node.zmq_publish('tcp://127.0.0.1:2900', :socket_ctype => :connect)
@@ -53,8 +54,8 @@ ddn = DripDrop::Node.new do |node|
       sleep 2
     end
   end
-
 end
+
 #Let's also fire up sinatra, that way people can actually view the web socket
 class WebServer < Sinatra::Base
   set :logging, false
