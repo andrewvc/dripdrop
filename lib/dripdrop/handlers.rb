@@ -85,11 +85,11 @@ class DripDrop
     end
   end
   class WebSocketHandler
-    attr_reader :ws, :address
+    attr_reader :ws, :address, :thread
    
     def initialize(address,opts={},&block)
-      @raw = false #Deal in strings or ZMQ::Message objects
-      Thread.new do
+      @raw    = false #Deal in strings or ZMQ::Message objects
+      @thread = Thread.new do
         EventMachine.run do
           host, port = address.host, address.port.to_i
           @debug = opts[:debug] || false
@@ -102,7 +102,7 @@ class DripDrop
               @onopen_handler.call(ws) if @onopen_handler
             end
             @ws.onmessage do |message|
-              message = message.copy_out_string if @raw
+              message = message.copy_out_string   if @raw
               @onmessage_handler.call(message,ws) if @onmessage_handler
             end
             @ws.onclose do
