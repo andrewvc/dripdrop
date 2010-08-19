@@ -10,14 +10,12 @@ class DripDrop
     attr_accessor :debug
     
     def initialize(opts={},&block)
-      @handlers = {}
-      @debug    = opts[:debug]
-      @handler_default_opts = {:debug => @debug}
-      @joinables = [] #an array of proces to be executed as a join
-      @internal_recipients = {}
-      puts "Initialized with opts #{@handler_default_opts.inspect}" if @debug
-      puts "FAAA #{block}"
-      block.call(self)
+        @handlers = {}
+        @debug    = opts[:debug]
+        @handler_default_opts = {:debug => @debug}
+        @joinables = [] #an array of proces to be executed as a join
+        @internal_recipients = {}
+        block.call(self)
     end
 
     def join
@@ -25,13 +23,21 @@ class DripDrop
     end
 
     def send_internal(dest,data)
-      dest_block = @internal_recipients[dest]
-      return false unless dest_block
-      dest_block.call(data)
+      puts "SEND INTERNAL #{@internal_recipients.inspect}"
+      blocks = @internal_recipients[dest]
+      return false unless blocks
+      blocks.each do |block|
+        block.call(data)
+      end
     end
 
     def recv_internal(dest,&block)
-      @internal_recipients[dest] = block
+      puts "RECV INTERNAL  #{@internal_recipients.inspect}"
+      if @internal_recipients[dest]
+        @internal_recipients[dest] << block
+      else
+        @internal_recipients[dest] = [block]
+      end
     end
 
     def zmq_subscribe(address,opts={},&block)
@@ -41,11 +47,14 @@ class DripDrop
       
       reactor = ZM::Reactor.new(rand(5000).to_s.to_sym)
       handler = DripDrop::ZMQSubHandler.new(address,h_opts)
+      puts "reactor init"
       reactor.run do |context|
         handler.context = context
-        handler.on_recv(block) if block
+        puts block.inspect
+        handler.on_recv {|msg| puts block.call(msg)} if block
         context.sub_socket(handler)
       end
+      puts "reactor joinable"
       @joinables << lambda { reactor.join }
       
       handler
@@ -59,7 +68,7 @@ class DripDrop
     def websocket(address,opts={},&block)
       puts "websocket: #{address.inspect}" if @debug
       wsh = DripDrop::WebSocketHandler.new(URI.parse(address),handler_opts_given(opts))
-      @joinables << wsh
+      @joinables << lambda { wsh.thread.join }
       wsh
     end
 
