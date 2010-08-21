@@ -12,9 +12,12 @@ class DripDrop
     def initialize(opts={},&block)
         @handlers = {}
         @debug    = opts[:debug]
+        @joinables      = [] #an array of proces to be executed as a join
+        @recipients_for = {}
         @handler_default_opts = {:debug => @debug}
-        @joinables = [] #an array of proces to be executed as a join
-        @internal_recipients = {}
+        @reactor = ZM::Reactor.new(:node)
+        @reactor.run
+        @joinables << lambda { reactor.join }
         block.call(self)
     end
 
@@ -23,53 +26,52 @@ class DripDrop
     end
 
     def send_internal(dest,data)
-      puts "SEND INTERNAL #{@internal_recipients.inspect}"
-      blocks = @internal_recipients[dest]
+      return false unless @recipients_for[dest]
+      blocks = @recipients_for[dest].values
       return false unless blocks
       blocks.each do |block|
         block.call(data)
       end
     end
 
-    def recv_internal(dest,&block)
-      puts "RECV INTERNAL  #{@internal_recipients.inspect}"
-      if @internal_recipients[dest]
-        @internal_recipients[dest] << block
+    def recv_internal(dest,identifier,&block)
+      if @recipients_for[dest]
+        @recipients_for[dest][identifier] =  block
       else
-        @internal_recipients[dest] = [block]
+        @recipients_for[dest] = {identifier => block}
       end
     end
 
+    def remove_recv_internal(dest,identifier)
+      return false unless @recipients_for[dest]
+      @recipients_for[dest].delete(identifier)
+    end
+
     def zmq_subscribe(address,opts={},&block)
-      puts "zmq_address" if @debug
       zm_address = str_to_zm_address(address)
       h_opts = handler_opts_given(opts)
       
-      reactor = ZM::Reactor.new(rand(5000).to_s.to_sym)
       handler = DripDrop::ZMQSubHandler.new(address,h_opts)
-      puts "reactor init"
-      reactor.run do |context|
-        handler.context = context
-        puts block.inspect
-        handler.on_recv {|msg| puts block.call(msg)} if block
-        context.sub_socket(handler)
-      end
-      puts "reactor joinable"
-      @joinables << lambda { reactor.join }
+      handler.context = @reactor
+      handler.on_recv {|msg| block.call(msg)} if block
+      @reactor.sub_socket(handler)
       
       handler
     end
 
     def zmq_publish(address,opts={},&block)
-      puts "zmq_publish: #{address.inspect}" if @debug
       DripDrop::ZMQPubHandler.new(address,handler_opts_given(opts))
     end
     
     def websocket(address,opts={},&block)
-      puts "websocket: #{address.inspect}" if @debug
       wsh = DripDrop::WebSocketHandler.new(URI.parse(address),handler_opts_given(opts))
       @joinables << lambda { wsh.thread.join }
       wsh
+    end
+
+    def custom_handler(&block)
+      joinable = block.call(self)
+      @joinables << lambda { joinable.join }
     end
 
     private
