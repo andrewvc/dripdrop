@@ -12,9 +12,9 @@ The rack stats app works as follows:
 
 ![topology](http://github.com/andrewvc/dripdrop/raw/master/doc_img/topology.png "Topology")
 
-    The forwarder, mongo logging, and web socket interface work using the code below:
-    You'll want to start up the webserver with: thin start -R config.ru in the examples/rack-stats folder
-    You'll start up the core with just ruby core.rb and if you want to connect the console via zmq try 'ruby console-logger.rb'
+The forwarder, mongo logging, and web socket interface work using the code below:
+You'll want to start up the webserver with: `thin start -R config.ru` in the examples/rack-stats folder
+You'll start up the core with just `ruby core.rb` and if you want to connect the console via zmq try `ruby console-logger.rb`
 
     DripDrop::Node.new do |node|
       ###
