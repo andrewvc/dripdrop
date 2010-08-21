@@ -14,8 +14,7 @@ DripDrop::Node.new do |node|
   ### ZMQ Forwarder
   ###
   fwd_pub = node.zmq_publish(FORWARDER_OUT)
-  fwd_sub = node.zmq_subscribe(FORWARDER_IN,:socket_ctype => :bind)
-  fwd_sub.on_recv_raw do |message|
+  node.zmq_subscribe(FORWARDER_IN,:socket_ctype => :bind).on_recv_raw do |message|
     fwd_pub.send_message(message)
     print 'f'
   end
@@ -35,15 +34,11 @@ DripDrop::Node.new do |node|
   ###
   node.websocket(WEBSOCKET_ADDR).on_open {|ws|
     #This actually isn't the most efficient way to do this, normally
-    #you'd do one sub socket per process, but this is here for fun
+    #you'd do one sub socket per process + node.recv_internal,
+    #but this is here for fun
     node.zmq_subscribe(FORWARDER_OUT).on_recv {|message|
       print 'w'
       ws.send(message.to_hash.to_json)
     }
-  }.on_recv {|message,ws|
-  }.on_close {|ws|
-    node.remove_recv_internal(:my_rebroadcast,ws)
-  }.on_error {|ws|
-    node.remove_recv_internal(:my_rebroadcast,ws)
-  } 
+  }
 end
