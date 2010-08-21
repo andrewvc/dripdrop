@@ -5,14 +5,13 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dripdrop}
-  s.version = "0.0.3"
+  s.version = "0.0.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrew Cholakian"]
-  s.date = %q{2010-08-14}
+  s.date = %q{2010-08-21}
   s.description = %q{0MQ App stats}
   s.email = %q{andrew@andrewvc.com}
-  s.executables = ["drip-mlogger", "drip-publisher"]
   s.extra_rdoc_files = [
     "LICENSE",
      "README.md"
@@ -24,23 +23,16 @@ Gem::Specification.new do |s|
      "README.md",
      "Rakefile",
      "VERSION",
-     "bin/drip-mlogger",
-     "bin/drip-publisher",
      "doc_img/topology.png",
      "dripdrop.gemspec",
      "example/agent_test.rb",
      "example/forwarder.cfg",
-     "example/web/public/js/jquery.gracefulWebSocket.js",
-     "example/web/public/js/jquery.js",
-     "example/web/public/js/jquery.websocket.js",
-     "example/web/public/view.html",
-     "example/web/server.rb",
+     "example/node.rb",
      "lib/dripdrop.rb",
      "lib/dripdrop/agent.rb",
-     "lib/dripdrop/collector.rb",
+     "lib/dripdrop/handlers.rb",
      "lib/dripdrop/message.rb",
-     "lib/dripdrop/mlogger.rb",
-     "lib/dripdrop/publisher.rb"
+     "lib/dripdrop/node.rb"
   ]
   s.homepage = %q{http://github.com/andrewvc/dripdrop}
   s.rdoc_options = ["--charset=UTF-8"]
@@ -53,15 +45,24 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<zmq>, [">= 0"])
       s.add_runtime_dependency(%q<ffi>, [">= 0"])
+      s.add_runtime_dependency(%q<ffi-rzmq>, [">= 0"])
+      s.add_runtime_dependency(%q<zmqmachine>, [">= 0"])
+      s.add_runtime_dependency(%q<bert>, [">= 0"])
+      s.add_runtime_dependency(%q<json>, [">= 0"])
     else
-      s.add_dependency(%q<zmq>, [">= 0"])
       s.add_dependency(%q<ffi>, [">= 0"])
+      s.add_dependency(%q<ffi-rzmq>, [">= 0"])
+      s.add_dependency(%q<zmqmachine>, [">= 0"])
+      s.add_dependency(%q<bert>, [">= 0"])
+      s.add_dependency(%q<json>, [">= 0"])
     end
   else
-    s.add_dependency(%q<zmq>, [">= 0"])
     s.add_dependency(%q<ffi>, [">= 0"])
+    s.add_dependency(%q<ffi-rzmq>, [">= 0"])
+    s.add_dependency(%q<zmqmachine>, [">= 0"])
+    s.add_dependency(%q<bert>, [">= 0"])
+    s.add_dependency(%q<json>, [">= 0"])
   end
 end
 

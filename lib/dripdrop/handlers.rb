@@ -4,7 +4,7 @@ require 'json'
 
 class DripDrop
   class ZMQSubHandler
-    attr_reader :socket, :address, :collector, :recv_mode
+    attr_reader :socket, :address, :recv_mode, :thread
     attr_accessor :context
     
     #Takes a zmqmachine reactor in sub mode's context, self, address, and a CollectorPublisher
@@ -14,42 +14,50 @@ class DripDrop
       @socket_ctype = opts[:socket_ctype]
       @debug        = opts[:debug]
       @recv_cbak    = block
-    end
-    
-    def on_attach(socket)
-      if @socket_ctype == :connect
-        socket.connect(@address)
+      @context      = ZMQ::Context.new(1)
+      @socket       = @context.socket(ZMQ::SUB)
+      @socket.setsockopt(ZMQ::SUBSCRIBE,'')
+      
+      if @socket_ctype == :bind
+        @socket.bind(@address)
       else
-        socket.bind(@address)
-      end
-      socket.subscribe ''
-    end
-    
-    def on_readable(socket, messages)
-      messages.each do |message|
-        case @recv_mode
-        when :parse
-          message = DripDrop::Message.parse(message.copy_out_string)
-        when :copy_str
-          message = message.copy_out_string
-        end
-        @recv_cbak.call(message)
+        @socket.connect(@address)
       end
     end
     
     def on_recv_str(&block)
-      @recv_mode = :copy_str
-      @recv_cbak = block
+      on_readable(:copy_str, block)
+      self
     end
 
     def on_recv(&block)
-      @recv_mode = :parse
-      @recv_cbak = block
+      on_readable(:parse, block)
+      self
     end
 
     def on_recv_raw(&block)
-      @recv_mode = :raw
-      @recv_cbak = block
+      on_readable(:raw, block)
+      self
+    end
+    
+    def on_readable(mode, block)
+      @thread = Thread.new do
+        message = ZMQ::Message.new
+        while @socket.recv(message)
+          case mode
+          when :parse
+            message = DripDrop::Message.parse(message.copy_out_string)
+          when :copy_str
+            message = message.copy_out_string
+          end
+          block.call(message)  
+          message = ZMQ::Message.new
+        end
+      end     
+    end
+    
+    def join
+      @thread.join
     end
   end
   class ZMQPubHandler
@@ -63,11 +71,11 @@ class DripDrop
       @socket   = @context.socket(ZMQ::PUB)
       @socket_ctype = opts[:socket_ctype]
       @debug        = opts[:debug]
-
-      if @socket_ctype == :bind
-        @socket.bind(@address.to_s)
-      else
+       
+      if @socket_ctype == :connect
         @socket.connect(@address.to_s)
+      else
+        @socket.bind(@address.to_s)
       end
 
     end
@@ -90,7 +98,6 @@ class DripDrop
     def initialize(address,opts={},&block)
       @raw    = false #Deal in strings or ZMQ::Message objects
       @thread = Thread.new do
-        EventMachine.run do
           host, port = address.host, address.port.to_i
           @debug = opts[:debug] || false
           @onmessage_handler = block
@@ -112,7 +119,6 @@ class DripDrop
               @onerror_handler.call(@ws) if @onerror_handler
             end
           end
-        end   
       end
     end
     
