@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'ffi-rzmq'
-require 'zmqmachine'
+require 'em-synchrony'
 require 'uri'
 require 'dripdrop/message'
 require 'dripdrop/handlers'
@@ -15,10 +15,9 @@ class DripDrop
         @joinables      = [] #an array of proces to be executed as a join
         @recipients_for = {}
         @handler_default_opts = {:debug => @debug}
-        @reactor = ZM::Reactor.new(:node)
-        @reactor.run
-        @joinables << lambda { reactor.join }
-        block.call(self)
+        EM.synchrony do
+          block.call(self)
+        end
     end
 
     def join
@@ -48,13 +47,11 @@ class DripDrop
     end
 
     def zmq_subscribe(address,opts={},&block)
-      zm_address = str_to_zm_address(address)
       h_opts = handler_opts_given(opts)
       
       handler = DripDrop::ZMQSubHandler.new(address,h_opts)
-      handler.context = @reactor
       handler.on_recv {|msg| block.call(msg)} if block
-      @reactor.sub_socket(handler)
+      @joinables << lambda { handler.thread.join }
       
       handler
     end
