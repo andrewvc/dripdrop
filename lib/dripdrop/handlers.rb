@@ -106,7 +106,10 @@ class DripDrop
               @onmessage_handler.call(message,ws) if @onmessage_handler
             end
             @ws.onclose do
-              @onclose_handler.call() if @onclose_handler
+              @onclose_handler.call(@ws) if @onclose_handler
+            end
+            @ws.onerror do
+              @onerror_handler.call(@ws) if @onerror_handler
             end
           end
         end   
@@ -132,6 +135,11 @@ class DripDrop
   
     def on_close(&block)
       @onclose_handler = block
+      self
+    end
+    
+    def on_error(&block)
+      @onerror_handler = block
       self
     end
   end
