@@ -44,12 +44,15 @@ class DripDrop
       @thread = Thread.new do
         begin
           while message = @socket.recv
-            if mode == :parse
-              block.call(DripDrop::Message.parse(message))
-            else
-              block.call(message)
+            EM::Deferrable.future(message) do |message|
+                puts 'recvd'
+                if mode == :parse
+                  block.call(DripDrop::Message.parse(message))
+                else
+                  block.call(message)
+                end
+              end
             end
-          end
         rescue Exception => e
           puts e.inspect  
         end
