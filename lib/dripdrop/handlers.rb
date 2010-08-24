@@ -44,15 +44,14 @@ class DripDrop
       @thread = Thread.new do
         begin
           while message = @socket.recv
-            EM::Deferrable.future(message) do |message|
-                puts 'recvd'
-                if mode == :parse
-                  block.call(DripDrop::Message.parse(message))
-                else
-                  block.call(message)
-                end
+            EM.defer do
+              if mode == :parse
+                block.call(DripDrop::Message.parse(message))
+              else
+                block.call(message)
               end
             end
+          end
         rescue Exception => e
           puts e.inspect  
         end
@@ -85,11 +84,13 @@ class DripDrop
     
     #Sends a message along
     def send_message(message)
-      puts "ZMQPub send_message" if @debug
-      if message.is_a?(DripDrop::Message)
-        @socket.send(message.encoded)
-      else
-        @socket.send(message.to_s)
+      EM.defer do
+        puts "ZMQPub send_message" if @debug
+        if message.is_a?(DripDrop::Message)
+          @socket.send(message.encoded)
+        else
+          @socket.send(message.to_s)
+        end
       end
     end
   end
