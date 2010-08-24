@@ -1,5 +1,12 @@
 require 'dripdrop/message'
-require 'ffi-rzmq'
+#Check if we're in 1.8.7
+unless defined?(RUBY_ENGINE)
+  require 'zmq'
+  ZMQGEM = :rbzmq
+else
+  require 'ffi-rzmq'
+  ZMQGEM = :ffirzmq
+end
 require 'uri'
 require 'bert'
 
@@ -17,7 +24,12 @@ class DripDrop
 
     #Sends a DripDrop::Message to the socket
     def send_message(name,body,head={})
-      @socket.send_string(DripDrop::Message.new(name,:body => body, :head => head).encoded, 0)
+      message = DripDrop::Message.new(name,:body => body, :head => head).encoded
+      if ZMQGEM == :rbzmq
+        @socket.send message
+      else
+        @socket.send_string message
+      end
     end
   end
 end
