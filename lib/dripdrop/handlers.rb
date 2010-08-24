@@ -42,18 +42,18 @@ class DripDrop
     
     def on_readable(mode, block)
       @thread = Thread.new do
-        message = ZMQ::Message.new
-        while @socket.recv(message)
-          case mode
-          when :parse
-            message = DripDrop::Message.parse(message.copy_out_string)
-          when :copy_str
-            message = message.copy_out_string
+        begin
+          while message = @socket.recv
+            if mode == :parse
+              block.call(DripDrop::Message.parse(message))
+            else
+              block.call(message)
+            end
           end
-          block.call(message)  
-          message = ZMQ::Message.new
+        rescue Exception => e
+          puts e.inspect  
         end
-      end     
+      end
     end
     
     def join
@@ -83,12 +83,10 @@ class DripDrop
     #Sends a message along
     def send_message(message)
       puts "ZMQPub send_message" if @debug
-      if    message.is_a?(ZMQ::Message)
-        @socket.send(message)
-      elsif message.is_a?(DripDrop::Message)
-        @socket.send_string(message.encoded)
+      if message.is_a?(DripDrop::Message)
+        @socket.send(message.encoded)
       else
-        @socket.send_string(message.to_s)
+        @socket.send(message.to_s)
       end
     end
   end
