@@ -1,6 +1,6 @@
 require 'rubygems'
-require 'zmq'
-require 'eventmachine'
+require 'ffi-rzmq'
+require 'em-synchrony'
 require 'uri'
 require 'dripdrop/message'
 require 'dripdrop/handlers'
@@ -15,7 +15,7 @@ class DripDrop
         @joinables      = [] #an array of proces to be executed as a join
         @recipients_for = {}
         @handler_default_opts = {:debug => @debug}
-        EM.run do
+        EM.synchrony do
           block.call(self)
         end
     end

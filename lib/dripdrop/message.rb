@@ -39,6 +39,7 @@ class DripDrop
 
     #Parses an encoded message
     def self.parse(msg)
+      return nil if msg.nil? || msg.empty?
       #This makes parsing ZMQ messages less painful, even if its ugly here
       #We check the class name as a string if case we don't have ZMQ loaded
       if msg.class.to_s == 'ZMQ::Message'

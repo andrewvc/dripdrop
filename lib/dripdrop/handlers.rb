@@ -1,5 +1,5 @@
-require 'eventmachine'
 require 'em-websocket'
+require 'ffi-rzmq'
 require 'json'
 
 class DripDrop
@@ -25,37 +25,37 @@ class DripDrop
       end
     end
     
-    def on_recv_str(&block)
-      on_readable(:copy_str, block)
-      self
-    end
-
-    def on_recv(&block)
-      on_readable(:parse, block)
+     def on_recv(&block)
+      recv(:parse, block)
       self
     end
 
     def on_recv_raw(&block)
-      on_readable(:raw, block)
+      recv(:raw, block)
       self
     end
     
-    def on_readable(mode, block)
+    def on_recv_str(&block)
+      recv(:copy_str, block)
+      self
+    end
+
+    def recv(mode, block)
       @thread = Thread.new do
-        begin
-          while message = @socket.recv
-            EM.defer do
-              if mode == :parse
-                block.call(DripDrop::Message.parse(message))
-              else
-                block.call(message)
-              end
+        EM.defer do
+          message = ZMQ::Message.new
+          while @socket.recv(message)
+            case mode
+            when :parse
+              message = DripDrop::Message.parse(message.copy_out_string)
+            when :copy_str
+              message = message.copy_out_string
             end
+            block.call(message)  
+            message = ZMQ::Message.new
           end
-        rescue Exception => e
-          puts e.inspect  
         end
-      end
+      end     
     end
     
     def join
@@ -85,11 +85,12 @@ class DripDrop
     #Sends a message along
     def send_message(message)
       EM.defer do
-        puts "ZMQPub send_message" if @debug
-        if message.is_a?(DripDrop::Message)
-          @socket.send(message.encoded)
+        if    message.is_a?(ZMQ::Message)
+          @socket.send(message)
+        elsif message.is_a?(DripDrop::Message)
+          @socket.send_string(message.encoded)
         else
-          @socket.send(message.to_s)
+          @socket.send_string(message.to_s)
         end
       end
     end
