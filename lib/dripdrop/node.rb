@@ -24,28 +24,6 @@ class DripDrop
       @joinables.each {|j| j.call}
     end
 
-    def send_internal(dest,data)
-      return false unless @recipients_for[dest]
-      blocks = @recipients_for[dest].values
-      return false unless blocks
-      blocks.each do |block|
-        block.call(data)
-      end
-    end
-
-    def recv_internal(dest,identifier,&block)
-      if @recipients_for[dest]
-        @recipients_for[dest][identifier] =  block
-      else
-        @recipients_for[dest] = {identifier => block}
-      end
-    end
-
-    def remove_recv_internal(dest,identifier)
-      return false unless @recipients_for[dest]
-      @recipients_for[dest].delete(identifier)
-    end
-
     def zmq_subscribe(address,opts={},&block)
       h_opts = handler_opts_given(opts)
       
