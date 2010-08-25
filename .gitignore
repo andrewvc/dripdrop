@@ -20,4 +20,7 @@ rdoc
 doc
 pkg
 
+#RBX
+*.rbc
+
 ## PROJECT::SPECIFIC
