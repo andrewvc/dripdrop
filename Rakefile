@@ -11,7 +11,7 @@ begin
     gem.homepage = "http://github.com/andrewvc/dripdrop"
     gem.authors = ["Andrew Cholakian"]
     gem.add_dependency('ffi-rzmq')
-    gem.add_dependency('em-synchrony')
+    gem.add_dependency('eventmachine')
     gem.add_dependency('bert')
     gem.add_dependency('json')
   end
