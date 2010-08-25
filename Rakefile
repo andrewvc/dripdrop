@@ -10,9 +10,8 @@ begin
     gem.email = "andrew@andrewvc.com"
     gem.homepage = "http://github.com/andrewvc/dripdrop"
     gem.authors = ["Andrew Cholakian"]
-    gem.add_dependency('ffi')
     gem.add_dependency('ffi-rzmq')
-    gem.add_dependency('zmqmachine')
+    gem.add_dependency('em-synchrony')
     gem.add_dependency('bert')
     gem.add_dependency('json')
   end
