@@ -43,11 +43,6 @@ class DripDrop
 
     private
     
-    def str_to_zm_address(str)
-      addr_uri = URI.parse(str)
-      ZM::Address.new(addr_uri.host,addr_uri.port.to_i,addr_uri.scheme.to_sym)
-    end
-    
     def handler_opts_given(opts)
       @handler_default_opts.merge(opts)
     end
