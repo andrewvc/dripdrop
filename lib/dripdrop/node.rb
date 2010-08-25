@@ -37,8 +37,26 @@ class DripDrop
       wsh
     end
 
-    def custom_handler(&block)
-      joinable = block.call(self)
+    def send_internal(dest,data)
+      return false unless @recipients_for[dest]
+      blocks = @recipients_for[dest].values
+      return false unless blocks
+      blocks.each do |block|
+        block.call(data)
+      end
+    end
+
+    def recv_internal(dest,identifier,&block)
+      if @recipients_for[dest]
+        @recipients_for[dest][identifier] =  block
+      else
+        @recipients_for[dest] = {identifier => block}
+      end
+    end
+
+    def remove_recv_internal(dest,identifier)
+      return false unless @recipients_for[dest]
+      @recipients_for[dest].delete(identifier)
     end
 
     private
