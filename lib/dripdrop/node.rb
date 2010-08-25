@@ -10,18 +10,13 @@ class DripDrop
     attr_accessor :debug
     
     def initialize(opts={},&block)
-        @handlers = {}
-        @debug    = opts[:debug]
-        @joinables      = [] #an array of proces to be executed as a join
-        @recipients_for = {}
-        @handler_default_opts = {:debug => @debug}
-        EM.synchrony do
-          block.call(self)
-        end
-    end
-
-    def join
-      @joinables.each {|j| j.call}
+      @handlers = {}
+      @debug    = opts[:debug]
+      @recipients_for = {}
+      @handler_default_opts = {:debug => @debug}
+      EM.synchrony do
+        block.call(self)
+      end
     end
 
     def zmq_subscribe(address,opts={},&block)
@@ -29,7 +24,6 @@ class DripDrop
       
       handler = DripDrop::ZMQSubHandler.new(address,h_opts)
       handler.on_recv {|msg| block.call(msg)} if block
-      @joinables << lambda { handler.thread.join }
       
       handler
     end
@@ -40,13 +34,11 @@ class DripDrop
     
     def websocket(address,opts={},&block)
       wsh = DripDrop::WebSocketHandler.new(URI.parse(address),handler_opts_given(opts))
-      @joinables << lambda { wsh.thread.join }
       wsh
     end
 
     def custom_handler(&block)
       joinable = block.call(self)
-      @joinables << lambda { joinable.join }
     end
 
     private
