@@ -37,7 +37,7 @@ class DripDrop
       {:name => @name, :head => @head, :body => @body}
     end
 
-    #Parses an encoded message
+    #Parses an already encoded string
     def self.parse(msg)
       return nil if msg.nil? || msg.empty?
       #This makes parsing ZMQ messages less painful, even if its ugly here
@@ -49,6 +49,13 @@ class DripDrop
       name, encoded_body = msg.split("\0",2)
       decoded = BERT.decode(encoded_body)
       self.new(name, :head => decoded[:head], :body => decoded[:body])
+    end
+    
+    private
+    
+    #Sanitize a string so it'll look good for JSON, BERT, and MongoDB
+    def sanitize_structure(structure)
+      #TODO: Make this work, and called for head, and body
     end
   end
 end

@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'ffi-rzmq'
-require 'em-synchrony'
+require 'eventmachine'
 require 'uri'
 require 'dripdrop/message'
 require 'dripdrop/handlers'
@@ -14,8 +14,15 @@ class DripDrop
       @debug    = opts[:debug]
       @recipients_for = {}
       @handler_default_opts = {:debug => @debug}
-      EM.synchrony do
+      @joinables = [] #Threads to join on if we aren't using EM      
+
+      if opts[:no_em]
         block.call(self)
+        @joinables.each {|j| j.call}
+      else
+        EM.run do
+          block.call(self)
+        end
       end
     end
 
@@ -24,6 +31,7 @@ class DripDrop
       
       handler = DripDrop::ZMQSubHandler.new(address,h_opts)
       handler.on_recv {|msg| block.call(msg)} if block
+      @joinables << lambda {handler.join}
       
       handler
     end
