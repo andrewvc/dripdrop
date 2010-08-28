@@ -3,12 +3,14 @@ require 'bert'
 
 class DripDrop
   #DripDrop::Message messages are exchanged between all tiers in the architecture
-  #A Message is composed of a name, head, and body. The name exists primarily for the
-  #purpose of native ZMQ filtering, since ZMQ can filter based on a message prefix.
+  #A Message is composed of a name, head, and body, and should be restricted to types that
+  #can be readily encoded to JSON, that means hashes, arrays, strings, integers, and floats
+  #internally, they're just stored as BERT
   #
-  #The name is any string consisting of non-null chars.
-  #The rest of the payload is a BERT encoded head and body, both of which are hashes.
-  #The head and body don't have rigid definitions yet, use as you please.
+  #The basic message format is built to mimic HTTP. Why? Because I'm a dumb web developer :)
+  #The name is kind of like the URL, its what kind of message this is.
+  #head should be used for metadata, body for the actual data.
+  #These definitions are intentionally loose, because protocols tend to be used loosely.
   class Message
     attr_accessor :name, :head, :body
     
@@ -28,7 +30,7 @@ class DripDrop
     
     #The encoded message, ready to be sent across the wire via ZMQ
     def encoded
-      "#{@name}\0#{BERT.encode({:head => @head, :body => @body})}"
+      BERT.encode(self.to_hash)
     end
     
     #Convert the Message to a hash like:
@@ -46,9 +48,8 @@ class DripDrop
         msg = msg.copy_out_string 
         return nil if msg.empty?
       end
-      name, encoded_body = msg.split("\0",2)
-      decoded = BERT.decode(encoded_body)
-      self.new(name, :head => decoded[:head], :body => decoded[:body])
+      decoded = BERT.decode(msg)
+      self.new(decoded[:name], :head => decoded[:head], :body => decoded[:body])
     end
     
     private
