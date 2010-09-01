@@ -13,20 +13,6 @@ ddn = DripDrop::Node.new do |node|
   ws_addr = 'ws://127.0.0.1:2902'
   
   ###
-  ### Broadcast to the simple pub sub
-  ###
-  seeder = node.zmq_publish(simple_pub_sub_addr)
-  node.custom_handler do
-    Thread.new do
-      loop do
-        message = DripDrop::Message.new('test/message', :body => [1,2,{}])
-        seeder.send_message(message)
-        sleep 1
-      end
-    end
-  end
-
-  ###
   ### Listening to pub sub
   ###
   node.zmq_subscribe(simple_pub_sub_addr).on_recv do |message|
