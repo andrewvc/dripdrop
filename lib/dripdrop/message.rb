@@ -40,6 +40,7 @@ class DripDrop
     end
 
     #Parses an already encoded string
+    def self.decode(*args); self.parse(*args) end
     def self.parse(msg)
       return nil if msg.nil? || msg.empty?
       #This makes parsing ZMQ messages less painful, even if its ugly here
