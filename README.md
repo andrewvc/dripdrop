@@ -1,8 +1,10 @@
-# dripdrop
+# DripDrop
 
 **Note, this is a work in progress, right now I'm stomping around the codebase breaking a lot of things that worked only a short while ago. Expect this to be fixed by sunday, Sept 5 however. And no, I won't branch because the old code sucked (truly).**
 
-DripDrop is ZeroMQ(using zmqmachine) + Event Machine simplified for the general use case. I'm going to shut up and show you some dripdrop code.
+DripDrop is ZeroMQ(using zmqmachine) + Event Machine simplified for the general use case + serialization helpers.
+
+I'm going to shut up and show you some dripdrop code.
     
     #This encapsulates both an EventMachine reactor and a zmqmachine reactor
     DripDrop::Node.new do |node|
