@@ -18,15 +18,19 @@ class DripDrop
       end
       socket.subscribe('')
     end
-
-    #Implement zmqmachine on_readable
+    
     def on_readable(socket, messages)
-      topic = messages.shift.copy_out_string
-      body  = messages.shift.copy_out_string
-      msg   = @recv_cbak.call(DripDrop::Message.decode(body))
+      if @msg_format == :raw
+        @recv_cbak.call(messages)
+      else
+        topic = messages.shift.copy_out_string
+        body  = messages.shift.copy_out_string
+        msg   = @recv_cbak.call(DripDrop::Message.decode(body))
+      end
     end
 
-    def on_recv(&block)
+    def on_recv(msg_format=:dripdrop,&block)
+      @msg_format = msg_format 
       @recv_cbak = block
       self
     end
@@ -70,7 +74,7 @@ class DripDrop
         @send_queue.push([message.name, message.encoded])
         @zm_reactor.register_writable(@socket)
       else
-        raise "#{message} is not a DripDrop::Messages can be sent"
+        @send_queue.push(message)
       end
     end
   end

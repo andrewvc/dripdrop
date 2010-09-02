@@ -1,5 +1,4 @@
 require 'dripdrop/node'
-require 'sinatra/base'
 Thread.abort_on_exception = true
 
 DripDrop::Node.new do |node|
