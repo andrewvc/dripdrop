@@ -1,55 +1,35 @@
 # dripdrop
 
-0MQ Toolset. A work in progress.
-The goal here is to set up a standard message format, and toolchain to make async 0MQ apps easy to build.
+**Note, this is a work in progress, right now I'm stomping around the codebase breaking a lot of things that worked only a short while ago. Expect this to be fixed by sunday, Sept 5 however. And no, I won't branch because the old code sucked (truly).**
 
-Hopefully, by standardizing on a message format and patterns, composable apps can be built from these blocks.
-Still a very rough work in progress, however, check out the rack-stats example.
+DripDrop is ZeroMQ(using zmqmachine) + Event Machine simplified for the general use case. I'm going to shut up and show you some dripdrop code.
+    
+    #This encapsulates both an EventMachine reactor and a zmqmachine reactor
+    DripDrop::Node.new do |node|
+      z_addr = 'tcp://127.0.0.1:2200'
+        
+      #Creates a publish socket in zmqmachine
+      pub = node.zmq_publish(z_addr)
+      
+      #Create two listening sockets in zmqmachine
+      sub = node.zmq_subscribe(z_addr).on_recv do |message|
+        puts "Receiver 1 #{message.inspect}"
+      end
+      sub = node.zmq_subscribe(z_addr).on_recv do |message|
+        puts "Receiver 2 #{message.inspect}"
+      end
+      
+      node.zm_reactor.periodical_timer(5) do
+        pub.send_message(DripDrop::Message.new('test', :body => 'Test Payload'))
+      end
+    end
 
-#An Example
-
-The rack stats app works as follows:
+Want to see a longer example encapsulating both zmqmachine and eventmachine functionality? Check out [this file](http://github.com/andrewvc/dripdrop-webstats/blob/master/lib/dripdrop-webstats.rb), which encapsulates all the functionality of the diagram below:
 
 ![topology](http://github.com/andrewvc/dripdrop/raw/master/doc_img/topology.png "Topology")
 
-The forwarder, mongo logging, and web socket interface work using the code below:
-You'll want to start up the webserver with: `thin start -R config.ru` in the examples/rack-stats folder
-You'll start up the core with just `ruby core.rb` and if you want to connect the console via zmq try `ruby console-logger.rb`
+#How It Works
 
-    DripDrop::Node.new do |node|
-      ###
-      ### ZMQ Forwarder
-      ###
-      fwd_pub = node.zmq_publish(FORWARDER_OUT)
-      node.zmq_subscribe(FORWARDER_IN,:socket_ctype => :bind).on_recv_raw do |message|
-        fwd_pub.send_message(message)
-        print 'f'
-      end
-
-      ###
-      ### Persist all data to a MongoDB Instance
-      ###
-      db = EM::Mongo::Connection.new.db('dripdrop')
-      collection = db.collection('stats')
-      node.zmq_subscribe(FORWARDER_OUT).on_recv do |message|
-        hash = collection.insert(Hash.new)
-        print 'm'
-      end
-      
-      ###
-      ###  Broadcast a ZMQ sub socket out to web sockets
-      ###
-      node.websocket(WEBSOCKET_ADDR).on_open {|ws|
-        #This actually isn't the most efficient way to do this, normally
-        #you'd do one sub socket per process + node.recv_internal,
-        #but this is here for fun.
-        node.zmq_subscribe(FORWARDER_OUT).on_recv {|message|
-          print 'w'
-          ws.send(message.to_hash.to_json)
-        }
-      }
-    end
-
-## Copyright
+DripDrop encapsulates both zmqmachine, and eventmachine. It provides some sane default messaging choices, using [BERT](http://github.com/blog/531-introducing-bert-and-bert-rpc) (A binary, JSON, like serialization format) and JSON to automatically. zmqmachine and eventmachine have some good APIs, some convoluted ones, the goal here is to smooth over the bumps, and make writing highly concurrent programs both as terse and beautiful as possible.
 
 Copyright (c) 2010 Andrew Cholakian. See LICENSE for details.
