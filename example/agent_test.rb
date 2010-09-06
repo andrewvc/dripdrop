@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'dripdrop/agent'
 
-agent = DripDrop::Agent.new('tcp://127.0.0.1:2900')
+agent = DripDrop::Agent.new(ZMQ::PUB,'tcp://127.0.0.1:2900',:connect)
 
 loop do
   #Test is the message name, this is the first part of the 0MQ message, used for filtering

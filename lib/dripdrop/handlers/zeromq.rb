@@ -1,30 +1,60 @@
 require 'ffi-rzmq'
 
 class DripDrop
-  class ZMQSubHandler
-    attr_reader :address, :socket_ctype
+  class ZMQBaseHandler
+    attr_reader :address, :socket_ctype, :socket
     
-    def initialize(address,zm_reactor,opts={},&block)
+    def initialize(address,zm_reactor,socket_ctype,opts={})
       @address      = address
-      @socket_ctype = opts[:socket_ctype] # :bind or :connect
-      @debug        = opts[:debug]
-      @recv_cbak    = block
       @zm_reactor   = zm_reactor
+      @socket_ctype = socket_ctype # :bind or :connect
+      @debug        = opts[:debug]
     end
     
     def on_attach(socket)
-      if @socket_ctype == :bind
+      @socket = socket
+      if    @socket_ctype == :bind
         socket.bind(@address)
-      else
+      elsif @socket_ctype == :connect
         socket.connect(@address)
+      else
+        raise "Unsupported socket ctype '#{@socket_ctype}'"
       end
+    end
+     
+    def on_recv(msg_format=:dripdrop,&block)
+      @msg_format = msg_format 
+      @recv_cbak = block
+      self
+    end
+  end
+
+  class ZMQWritableHandler < ZMQBaseHandler
+    def initialize(*args)
+      super(*args)
+      @send_queue = []
+    end
+  end
+  
+  class ZMQReadableHandler < ZMQBaseHandler
+    def initialize(*args,&block)
+      super(*args)
+      @recv_cbak = block
+    end
+  end
+  
+  class ZMQSubHandler < ZMQReadableHandler
+    attr_reader :address, :socket_ctype
+    
+    def on_attach(socket)
+      super(socket)
       socket.subscribe('')
     end
-    
+
     def on_readable(socket, messages)
-      if @msg_format == :raw
+      if    @msg_format == :raw
         @recv_cbak.call(messages)
-      else
+      elsif @msg_format == :dripdrop
         unless messages.length == 2
           puts "Expected pub/sub message to come in two parts" 
           return false
@@ -32,39 +62,14 @@ class DripDrop
         topic = messages.shift.copy_out_string
         body  = messages.shift.copy_out_string
         msg   = @recv_cbak.call(DripDrop::Message.decode(body))
+      else
+        raise "Unsupported message format '#{@msg_format}'"
       end
-    end
-
-    def on_recv(msg_format=:dripdrop,&block)
-      @msg_format = msg_format 
-      @recv_cbak = block
-      self
     end
   end
-   
-  class ZMQPubHandler
-    attr_reader :address, :socket_ctype
     
-    def initialize(address,zm_reactor,opts={})
-      @address      = address
-      @socket_ctype = opts[:socket_ctype]
-      @debug        = opts[:debug]
-      @zm_reactor   = zm_reactor
-      
-      #Buffer messages here till on_writable
-      @send_queue = []
-    end
-    
-    def on_attach(socket)
-      @socket = socket
-      
-      if @socket_ctype == :connect
-        socket.connect(@address.to_s)
-      else
-        socket.bind(@address.to_s)
-      end
-    end
-    
+  
+  class ZMQPubHandler < ZMQWritableHandler
     #Send any messages buffered in @send_queue
     def on_writable(socket)
       unless @send_queue.empty?
@@ -97,25 +102,7 @@ class DripDrop
     end
   end
 
-  class ZMQPullHandler
-    attr_reader :address, :socket_ctype
-    
-    def initialize(address,zm_reactor,opts={},&block)
-      @address      = address
-      @socket_ctype = opts[:socket_ctype] || :bind
-      @debug        = opts[:debug]
-      @recv_cbak    = block
-      @zm_reactor   = zm_reactor
-    end
-    
-    def on_attach(socket)
-      if @socket_ctype == :bind
-        socket.bind(@address)
-      else
-        socket.connect(@address)
-      end
-    end
-    
+  class ZMQPullHandler < ZMQReadableHandler
     def on_readable(socket, messages)
       if @msg_format == :raw
         @recv_cbak.call(messages)
@@ -124,37 +111,9 @@ class DripDrop
         msg   = @recv_cbak.call(DripDrop::Message.decode(body))
       end
     end
-
-    def on_recv(msg_format=:dripdrop,&block)
-      @msg_format = msg_format 
-      @recv_cbak = block
-      self
-    end
   end
 
-
-  class ZMQPushHandler
-    attr_reader :address, :socket_ctype
-    
-    def initialize(address,zm_reactor,opts={})
-      @address      = address
-      @socket_ctype = opts[:socket_ctype] || :connect
-      @debug        = opts[:debug]
-      @zm_reactor   = zm_reactor
-      
-      @send_queue = []
-    end
-    
-    def on_attach(socket)
-      @socket = socket
-       
-      if @socket_ctype == :bind
-        socket.bind(@address.to_s)
-      else
-        socket.connect(@address.to_s)
-      end
-    end
-    
+  class ZMQPushHandler < ZMQWritableHandler
     def on_writable(socket)
       unless @send_queue.empty?
         message = @send_queue.shift
