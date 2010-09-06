@@ -29,47 +29,12 @@ class DripDrop
     end
   end
 
-  class ZMQWritableHandler < ZMQBaseHandler
+  module ZMQWritableHandler
     def initialize(*args)
       super(*args)
       @send_queue = []
     end
-  end
-  
-  class ZMQReadableHandler < ZMQBaseHandler
-    def initialize(*args,&block)
-      super(*args)
-      @recv_cbak = block
-    end
-  end
-  
-  class ZMQSubHandler < ZMQReadableHandler
-    attr_reader :address, :socket_ctype
-    
-    def on_attach(socket)
-      super(socket)
-      socket.subscribe('')
-    end
 
-    def on_readable(socket, messages)
-      if    @msg_format == :raw
-        @recv_cbak.call(messages)
-      elsif @msg_format == :dripdrop
-        unless messages.length == 2
-          puts "Expected pub/sub message to come in two parts" 
-          return false
-        end
-        topic = messages.shift.copy_out_string
-        body  = messages.shift.copy_out_string
-        msg   = @recv_cbak.call(DripDrop::Message.decode(body))
-      else
-        raise "Unsupported message format '#{@msg_format}'"
-      end
-    end
-  end
-    
-  
-  class ZMQPubHandler < ZMQWritableHandler
     #Send any messages buffered in @send_queue
     def on_writable(socket)
       unless @send_queue.empty?
@@ -88,12 +53,12 @@ class DripDrop
         @zm_reactor.deregister_writable(socket)
       end
     end
-    
+
     #Sends a message along
     def send_message(message)
-      if message.is_a?(DripDrop::Message)
-        @send_queue.push([message.name, message.encoded])
-      elsif message.is_a?(Array)
+      if message.class == DripDrop::Message
+        @send_queue.push([message.encoded])
+      elsif message.class == Array
         @send_queue.push(message)
       else
         @send_queue.push([message])
@@ -101,19 +66,75 @@ class DripDrop
       @zm_reactor.register_writable(@socket)
     end
   end
+  
+  module ZMQReadableHandler
+    def initialize(*args,&block)
+      super(*args)
+      @recv_cbak = block
+    end
 
-  class ZMQPullHandler < ZMQReadableHandler
     def on_readable(socket, messages)
-      if @msg_format == :raw
+      case @msg_format
+      when :raw
         @recv_cbak.call(messages)
+      when :dripdrop
+        raise "Expected message in one part" if messages.length > 1
+        body  = messages.shift.copy_out_string
+        @recv_cbak.call(DripDrop::Message.decode(body))
       else
+        raise "Unknown message format '#{@msg_format}'"
+      end
+    end
+  end
+  
+  class ZMQSubHandler < ZMQBaseHandler
+    include ZMQReadableHandler
+    
+    attr_reader :address, :socket_ctype
+    
+    def on_attach(socket)
+      super(socket)
+      socket.subscribe('')
+    end
+
+    def on_readable(socket, messages)
+      if @msg_format == :dripdrop
+        unless messages.length == 2
+          puts "Expected pub/sub message to come in two parts #{self.inspect}" 
+          return false
+        end
+        topic = messages.shift.copy_out_string
         body  = messages.shift.copy_out_string
         msg   = @recv_cbak.call(DripDrop::Message.decode(body))
+      else
+        super(socket,messages)
+      end
+    end
+  end
+  
+  class ZMQPubHandler < ZMQBaseHandler
+    include ZMQWritableHandler
+    
+    #Sends a message along
+    def send_message(message)
+      if message.is_a?(DripDrop::Message)
+        @send_queue.push([message.name, message.encoded])
+        @zm_reactor.register_writable(@socket)
+      else
+        super(message)
       end
     end
   end
 
-  class ZMQPushHandler < ZMQWritableHandler
+  class ZMQPullHandler < ZMQBaseHandler
+    include ZMQReadableHandler
+    
+
+  end
+
+  class ZMQPushHandler < ZMQBaseHandler
+    include ZMQWritableHandler
+    
     def on_writable(socket)
       unless @send_queue.empty?
         message = @send_queue.shift
@@ -130,6 +151,64 @@ class DripDrop
         @zm_reactor.register_writable(@socket)
       else
         @send_queue.push(message)
+      end
+    end
+  end
+
+  class ZMQXRepHandler < ZMQBaseHandler
+    include ZMQWritableHandler
+    include ZMQReadableHandler
+    
+    def initialize(*args)
+      super(*args)
+    end
+    
+    def on_readable(socket,messages)
+      if @msg_format == :dripdrop
+        identities = messages[0..-2].map {|m| m.copy_out_string}
+        body  = messages.last.copy_out_string
+        msg   = DripDrop::Message.decode(body)
+        msg.head['_dripdrop/x_prepend'] = identities
+        @recv_cbak.call(msg)
+      else
+        super(socket,messages)
+      end
+    end
+
+    def send_message(message)
+      if message.is_a?(DripDrop::Message)
+        @send_queue.push(message.head['_dripdrop/x_prepend'] + [message.encoded])
+        @zm_reactor.register_writable(@socket)
+      else
+        super(message)
+      end
+    end
+  end
+
+  class ZMQXReqHandler < ZMQBaseHandler
+    include ZMQWritableHandler
+    include ZMQReadableHandler
+    
+    def initialize(*args)
+      super(*args)
+      #Used to keep track of responses
+      @seq_counter = 0
+      @promises = {}
+      
+      self.on_recv do |message|
+        seq = message.head['_dripdrop/x_seq_counter']
+        raise "Missing Seq Counter" unless seq
+        promise = @promises.delete(seq)
+        promise.call(message)
+      end
+    end
+    
+    def send_message(message,&block)
+      if message.is_a?(DripDrop::Message)
+        @seq_counter += 1
+        message.head['_dripdrop/x_seq_counter'] = @seq_counter
+        @promises[@seq_counter] = block
+        super(message)
       end
     end
   end
