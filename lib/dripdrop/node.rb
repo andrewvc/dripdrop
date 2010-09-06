@@ -24,7 +24,7 @@ class DripDrop
         ZM::Reactor.new(:my_reactor).run do |zm_reactor|
           @zm_reactor = zm_reactor
           block.call(self)
-        end.join
+        end
       end
     end
      
@@ -61,9 +61,10 @@ class DripDrop
     end
     
     def websocket(address,opts={},&block)
-      uri    = URI.parse(address)
-      h_opts = handler_opts_given(opts)
-      DripDrop::WebSocketHandler.new(uri,h_opts)
+      uri     = URI.parse(address)
+      h_opts  = handler_opts_given(opts)
+      handler = DripDrop::WebSocketHandler.new(uri,h_opts)
+      handler
     end
 
     def send_internal(dest,data)
