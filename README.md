@@ -29,6 +29,6 @@ Want to see a longer example encapsulating both zmqmachine and eventmachine func
 
 #How It Works
 
-DripDrop encapsulates both zmqmachine, and eventmachine. It provides some sane default messaging choices, using [BERT](http://github.com/blog/531-introducing-bert-and-bert-rpc) (A binary, JSON, like serialization format) and JSON to automatically. zmqmachine and eventmachine have some good APIs, some convoluted ones, the goal here is to smooth over the bumps, and make writing highly concurrent programs both as terse and beautiful as possible.
+DripDrop encapsulates both zmqmachine, and eventmachine. It provides some sane default messaging choices, using [BERT](http://github.com/blog/531-introducing-bert-and-bert-rpc) (A binary, JSON, like serialization format) and JSON for serialization. While zmqmachine and eventmachine APIs, some convoluted ones, the goal here is to smooth over the bumps, and make them play together nicely.
 
 Copyright (c) 2010 Andrew Cholakian. See LICENSE for details.
