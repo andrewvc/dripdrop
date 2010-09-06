@@ -1,6 +1,6 @@
 # DripDrop
 
-**Note, this is a work in progress, right now I'm stomping around the codebase breaking a lot of things that worked only a short while ago. Expect this to be fixed by sunday, Sept 5 however. And no, I won't branch because the old code sucked (truly).**
+**Note: For now, for PUSH/PULL support you'll need to build zmqmachine from my fork of zmqmachine, the official gem does not yet have this**
 
 DripDrop is ZeroMQ(using zmqmachine) + Event Machine simplified for the general use case + serialization helpers.
 
