@@ -2,6 +2,8 @@ require 'ffi-rzmq'
 
 class DripDrop
   class ZMQSubHandler
+    attr_reader :address, :socket_ctype
+    
     def initialize(address,zm_reactor,opts={},&block)
       @address      = address
       @socket_ctype = opts[:socket_ctype] # :bind or :connect
@@ -23,6 +25,10 @@ class DripDrop
       if @msg_format == :raw
         @recv_cbak.call(messages)
       else
+        unless messages.length == 2
+          puts "Expected pub/sub message to come in two parts" 
+          return false
+        end
         topic = messages.shift.copy_out_string
         body  = messages.shift.copy_out_string
         msg   = @recv_cbak.call(DripDrop::Message.decode(body))
@@ -37,6 +43,8 @@ class DripDrop
   end
    
   class ZMQPubHandler
+    attr_reader :address, :socket_ctype
+    
     def initialize(address,zm_reactor,opts={})
       @address      = address
       @socket_ctype = opts[:socket_ctype]
@@ -60,9 +68,17 @@ class DripDrop
     #Send any messages buffered in @send_queue
     def on_writable(socket)
       unless @send_queue.empty?
-        topic, message = @send_queue.shift
-        socket.send_message_string(topic, ZMQ::SNDMORE)
-        socket.send_message_string(message)
+        message = @send_queue.shift
+        
+        num_parts = message.length
+        message.each_with_index do |part,i|
+          multipart = i + 1 < num_parts ? true : false
+          if part.class == ZMQ::Message
+            socket.send_message(part, multipart)
+          else
+            socket.send_message_string(part, multipart)
+          end
+        end
       else
         @zm_reactor.deregister_writable(socket)
       end
@@ -72,14 +88,18 @@ class DripDrop
     def send_message(message)
       if message.is_a?(DripDrop::Message)
         @send_queue.push([message.name, message.encoded])
-        @zm_reactor.register_writable(@socket)
-      else
+      elsif message.is_a?(Array)
         @send_queue.push(message)
+      else
+        @send_queue.push([message])
       end
+      @zm_reactor.register_writable(@socket)
     end
   end
 
   class ZMQPullHandler
+    attr_reader :address, :socket_ctype
+    
     def initialize(address,zm_reactor,opts={},&block)
       @address      = address
       @socket_ctype = opts[:socket_ctype] || :bind
@@ -114,6 +134,8 @@ class DripDrop
 
 
   class ZMQPushHandler
+    attr_reader :address, :socket_ctype
+    
     def initialize(address,zm_reactor,opts={})
       @address      = address
       @socket_ctype = opts[:socket_ctype] || :connect

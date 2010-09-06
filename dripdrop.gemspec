@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrew Cholakian"]
-  s.date = %q{2010-08-25}
+  s.date = %q{2010-09-05}
   s.description = %q{0MQ App stats}
   s.email = %q{andrew@andrewvc.com}
   s.extra_rdoc_files = [
@@ -26,14 +26,12 @@ Gem::Specification.new do |s|
      "doc_img/topology.png",
      "dripdrop.gemspec",
      "example/agent_test.rb",
-     "example/forwarder.cfg",
-     "example/node.rb",
-     "example/rack-stats/config.ru",
-     "example/rack-stats/console-viewer.rb",
-     "example/rack-stats/core.rb",
+     "example/pubsub.rb",
+     "example/pushpull.rb",
      "lib/dripdrop.rb",
      "lib/dripdrop/agent.rb",
-     "lib/dripdrop/handlers.rb",
+     "lib/dripdrop/handlers/websockets.rb",
+     "lib/dripdrop/handlers/zeromq.rb",
      "lib/dripdrop/message.rb",
      "lib/dripdrop/node.rb"
   ]

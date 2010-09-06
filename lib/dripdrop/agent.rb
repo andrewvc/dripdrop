@@ -16,9 +16,9 @@ class DripDrop
     attr_reader :address, :context, :socket
     
     #address should be a string like tcp://127.0.0.1
-    def initialize(address)
+    def initialize(sock_type,address)
       @context = ZMQ::Context.new(1)
-      @socket  = @context.socket(ZMQ::PUB)
+      @socket  = @context.socket(sock_type)
       @socket.connect(address)
     end
 
@@ -26,8 +26,10 @@ class DripDrop
     def send_message(name,body,head={})
       message = DripDrop::Message.new(name,:body => body, :head => head).encoded
       if ZMQGEM == :rbzmq
+        @socket.send name, ZMQ::SNDMORE
         @socket.send message
       else
+        @socket.send_string name, ZMQ::SNDMORE
         @socket.send_string message
       end
     end
