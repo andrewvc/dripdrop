@@ -28,34 +28,34 @@ class DripDrop
       end
     end
      
-    def zmq_subscribe(address,opts={},&block)
+    def zmq_subscribe(address,socket_ctype,opts={},&block)
       zm_addr = str_to_zm_address(address)
       h_opts  = handler_opts_given(opts)
-      handler = DripDrop::ZMQSubHandler.new(zm_addr,@zm_reactor,h_opts)
+      handler = DripDrop::ZMQSubHandler.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
       @zm_reactor.sub_socket(handler)
       handler
     end
 
-    def zmq_publish(address,opts={})
+    def zmq_publish(address,socket_ctype,opts={})
       zm_addr = str_to_zm_address(address)
       h_opts  = handler_opts_given(opts)
-      handler = DripDrop::ZMQPubHandler.new(zm_addr,@zm_reactor,h_opts)
+      handler = DripDrop::ZMQPubHandler.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
       @zm_reactor.pub_socket(handler)
       handler
     end
 
-    def zmq_pull(address,opts={},&block)
+    def zmq_pull(address,socket_ctype,opts={},&block)
       zm_addr = str_to_zm_address(address)
       h_opts  = handler_opts_given(opts)
-      handler = DripDrop::ZMQPullHandler.new(zm_addr,@zm_reactor,h_opts)
+      handler = DripDrop::ZMQPullHandler.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
       @zm_reactor.pull_socket(handler)
       handler
     end
 
-    def zmq_push(address,opts={})
+    def zmq_push(address,socket_ctype,opts={})
       zm_addr = str_to_zm_address(address)
       h_opts  = handler_opts_given(opts)
-      handler = DripDrop::ZMQPushHandler.new(zm_addr,@zm_reactor,h_opts)
+      handler = DripDrop::ZMQPushHandler.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
       @zm_reactor.push_socket(handler)
       handler
     end

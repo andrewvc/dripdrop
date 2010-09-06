@@ -16,10 +16,14 @@ class DripDrop
     attr_reader :address, :context, :socket
     
     #address should be a string like tcp://127.0.0.1
-    def initialize(sock_type,address)
+    def initialize(sock_type,address,sock_ctype)
       @context = ZMQ::Context.new(1)
       @socket  = @context.socket(sock_type)
-      @socket.connect(address)
+      if sock_ctype == :bind
+        @socket.bind(address)
+      else
+        @socket.connect(address)
+      end
     end
 
     #Sends a DripDrop::Message to the socket
