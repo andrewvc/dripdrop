@@ -60,6 +60,22 @@ class DripDrop
       handler
     end
     
+    def zmq_xrep(address,socket_ctype,opts={})
+      zm_addr = str_to_zm_address(address)
+      h_opts  = handler_opts_given(opts)
+      handler = DripDrop::ZMQXRepHandler.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
+      @zm_reactor.xrep_socket(handler)
+      handler
+    end
+ 
+    def zmq_xreq(address,socket_ctype,opts={})
+      zm_addr = str_to_zm_address(address)
+      h_opts  = handler_opts_given(opts)
+      handler = DripDrop::ZMQXReqHandler.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
+      @zm_reactor.xreq_socket(handler)
+      handler
+    end
+    
     def websocket(address,opts={},&block)
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
