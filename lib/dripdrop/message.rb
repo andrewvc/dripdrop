@@ -59,7 +59,12 @@ class DripDrop
     end
 
     def self.decode_json(str)
-      json_hash = JSON.parse(str)
+      begin
+        json_hash = JSON.parse(str)
+      rescue JSON::ParserError => e
+        puts "Could not parse msg '#{str}': #{e.message}"
+        return nil
+      end
       self.new(json_hash['name'], :head => json_hash['head'], :body => json_hash['body'])
     end
 
