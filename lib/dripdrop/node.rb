@@ -92,6 +92,13 @@ class DripDrop
       handler = DripDrop::HTTPServerHandler.new(uri, h_opts,&block)
       handler
     end
+    
+    def http_client(address,opts={})
+      uri     = URI.parse(address)
+      h_opts  = handler_opts_given(opts)
+      handler = DripDrop::HTTPClientHandler.new(uri, h_opts)
+      handler
+    end
 
     def send_internal(dest,data)
       return false unless @recipients_for[dest]

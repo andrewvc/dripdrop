@@ -73,4 +73,26 @@ class DripDrop
       Thin::Server.start(@address.host, @address.port,@app)
     end
   end
+
+  class HTTPClientHandler
+    attr_reader :address, :opts
+    
+    def initialize(address, opts={})
+      @address = address
+      @opts    = opts
+    end
+    
+    def send_message(msg,&block)
+      if msg.class == DripDrop::Message
+        conn = EM::Protocols::HttpClient2.connect address.host, address.port
+        req  = conn.post('/', msg.encode_json)
+        req.callback do |response|
+          raise response.inspect
+          block.call(DripDrop::Message.decode_json(response.content))
+        end
+      else
+        raise "Unsupported message type '#{msg.class}'"
+      end
+    end
+  end
 end
