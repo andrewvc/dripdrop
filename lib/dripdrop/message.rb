@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'bert'
+require 'json'
 
 class DripDrop
   #DripDrop::Message messages are exchanged between all tiers in the architecture
@@ -33,6 +34,10 @@ class DripDrop
       BERT.encode(self.to_hash)
     end
     
+    def encode_json
+      self.to_hash.to_json
+    end
+
     #Convert the Message to a hash like:
     #{:name => @name, :head => @head, :body => @body}
     def to_hash
@@ -44,7 +49,7 @@ class DripDrop
     def self.parse(msg)
       return nil if msg.nil? || msg.empty?
       #This makes parsing ZMQ messages less painful, even if its ugly here
-      #We check the class name as a string if case we don't have ZMQ loaded
+      #We check the class name as a string in case we don't have ZMQ loaded
       if msg.class.to_s == 'ZMQ::Message'
         msg = msg.copy_out_string 
         return nil if msg.empty?
@@ -52,7 +57,12 @@ class DripDrop
       decoded = BERT.decode(msg)
       self.new(decoded[:name], :head => decoded[:head], :body => decoded[:body])
     end
-    
+
+    def self.decode_json(str)
+      json_hash = JSON.parse(str)
+      self.new(json_hash['name'], :head => json_hash['head'], :body => json_hash['body'])
+    end
+
     private
     
     #Sanitize a string so it'll look good for JSON, BERT, and MongoDB
