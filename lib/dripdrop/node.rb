@@ -7,6 +7,7 @@ require 'uri'
 require 'dripdrop/message'
 require 'dripdrop/handlers/zeromq'
 require 'dripdrop/handlers/websockets'
+require 'dripdrop/handlers/http'
 
 class DripDrop
   class Node
@@ -27,6 +28,8 @@ class DripDrop
         end
       end
     end
+
+    #TODO: All these need to be majorly DRYed up
      
     def zmq_subscribe(address,socket_ctype,opts={},&block)
       zm_addr = str_to_zm_address(address)
@@ -80,6 +83,13 @@ class DripDrop
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
       handler = DripDrop::WebSocketHandler.new(uri,h_opts)
+      handler
+    end
+    
+    def http_server(address,opts={},&block)
+      uri     = URI.parse(address)
+      h_opts  = handler_opts_given(opts)
+      handler = DripDrop::HTTPServerHandler.new(uri, h_opts,&block)
       handler
     end
 
