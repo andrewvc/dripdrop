@@ -5,9 +5,9 @@ DripDrop::Node.new do |node|
   z_addr = 'tcp://127.0.0.1:2200'
    
   rep = node.zmq_xrep(z_addr, :bind)
-  rep.on_recv do |message|
+  rep.on_recv do |identities,message|
     puts "REP #{message.body}"
-    rep.send_message(message)
+    rep.send_message(identities,message)
   end
 
   req = node.zmq_xreq(z_addr, :connect)
