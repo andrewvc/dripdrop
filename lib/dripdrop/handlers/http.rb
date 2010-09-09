@@ -27,6 +27,7 @@ class DripDrop
   end
   
   class HTTPApp
+    
     AsyncResponse = [-1, {}, []].freeze
     
     def initialize(msg_format,&block)
@@ -39,17 +40,12 @@ class DripDrop
       body = HTTPDeferrableBody.new
       
       EM.next_tick do
-        env['async.callback'].call([200, {'Content-Type' => 'text/plain'}, body])
+        env['async.callback'].call([200, {'Content-Type' => 'text/plain', 'Access-Control-Allow-Origin' => '*'}, body])
         EM.next_tick do
           case @msg_format
           when :dripdrop_json
             msg = DripDrop::Message.decode_json(env['rack.input'].read)
-            begin
-              @recv_cbak.call(body,msg)
-            rescue StandardError => e
-              puts e.inspect
-                puts e.backtrace.join("\n")
-              end
+            @recv_cbak.call(body,msg)
           else
             raise "Unsupported message type #{@msg_format}"
           end
@@ -67,10 +63,21 @@ class DripDrop
       @address = address
       @opts    = opts
     end
-
+    
     def on_recv(msg_format=:dripdrop_json,&block)
-      @app = HTTPApp.new(msg_format,&block)
-      Thin::Server.start(@address.host, @address.port,@app)
+      #Rack middleware was not meant to be used this way...
+      #Thin's error handling only rescues stuff w/o a backtrace
+      begin
+        Thin::Logging.debug = true
+        Thin::Logging.trace = true
+        Thin::Server.start(@address.host, @address.port) do
+          map '/' do
+            run HTTPApp.new(msg_format,&block)
+          end
+        end
+      rescue Exception => e
+        puts e.message; puts e.backtrace.join("\n");
+      end
     end
   end
 
