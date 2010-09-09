@@ -167,15 +167,17 @@ class DripDrop
       if @msg_format == :dripdrop
         identities = messages[0..-2].map {|m| m.copy_out_string}
         body  = messages.last.copy_out_string
-        msg   = DripDrop::Message.decode(body)
-        @recv_cbak.call(identities,msg)
+        message = DripDrop::Message.decode(body)
+        seq     = message.head['_dripdrop/x_seq_counter']
+        @recv_cbak.call(identities,seq,message)
       else
         super(socket,messages)
       end
     end
 
-    def send_message(identities,message)
+    def send_message(identities,seq,message)
       if message.is_a?(DripDrop::Message)
+        message.head['_dripdrop/x_seq_counter'] = seq
         @send_queue.push(identities + [message.encoded])
         @zm_reactor.register_writable(@socket)
       else
