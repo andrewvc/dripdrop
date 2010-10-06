@@ -24,7 +24,7 @@ class DripDrop
       EM.run do
         ZM::Reactor.new(:my_reactor).run do |zm_reactor|
           @zm_reactor = zm_reactor
-          block.call(self)
+          self.instance_eval(&block)
         end
       end
     end
