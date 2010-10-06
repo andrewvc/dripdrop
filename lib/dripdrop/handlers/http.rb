@@ -45,6 +45,7 @@ class DripDrop
           case @msg_format
           when :dripdrop_json
             msg = DripDrop::Message.decode_json(env['rack.input'].read)
+            msg.head[:http_env] = env
             @recv_cbak.call(body,msg)
           else
             raise "Unsupported message type #{@msg_format}"
