@@ -27,6 +27,18 @@ class DripDrop
       @recv_cbak = block
       self
     end
+
+    private
+    def dd_messagify(message)
+      if message.is_a?(Hash)
+        return DripDrop::Message.new(message[:name], :head => message[:head], 
+                                                     :body => message[:body])
+      elsif message.is_a?(DripDrop::Message)
+        return message
+      else
+        return message
+      end
+    end
   end
 
   module ZMQWritableHandler
@@ -56,8 +68,9 @@ class DripDrop
 
     #Sends a message along
     def send_message(message)
-      if message.class == DripDrop::Message
-        @send_queue.push([message.encoded])
+      dd_message = dd_messagify(message)
+      if dd_message.is_a?(DripDrop::Message)
+        @send_queue.push([dd_message.encoded])
       elsif message.class == Array
         @send_queue.push(message)
       else
@@ -68,9 +81,8 @@ class DripDrop
   end
   
   module ZMQReadableHandler
-    def initialize(*args,&block)
+    def initialize(*args)
       super(*args)
-      @recv_cbak = block
     end
 
     def on_readable(socket, messages)
@@ -100,7 +112,7 @@ class DripDrop
     def on_readable(socket, messages)
       if @msg_format == :dripdrop
         unless messages.length == 2
-          puts "Expected pub/sub message to come in two parts #{self.inspect}" 
+          puts "Expected pub/sub message to come in two parts, not #{messages.length}: #{messages.inspect}" 
           return false
         end
         topic = messages.shift.copy_out_string
@@ -117,9 +129,9 @@ class DripDrop
     
     #Sends a message along
     def send_message(message)
-      if message.is_a?(DripDrop::Message)
-        @send_queue.push([message.name, message.encoded])
-        @zm_reactor.register_writable(@socket)
+      dd_message = dd_messagify(message)
+      if dd_message.is_a?(DripDrop::Message)
+        super([dd_message.name, dd_message.encoded])
       else
         super(message)
       end
