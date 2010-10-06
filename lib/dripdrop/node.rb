@@ -20,13 +20,32 @@ class DripDrop
       @recipients_for = {}
       @handler_default_opts = {:debug => @debug}
       @zm_reactor = nil
-      
-      EM.run do
-        ZM::Reactor.new(:my_reactor).run do |zm_reactor|
-          @zm_reactor = zm_reactor
-          self.instance_eval(&block)
+      @block = block
+      @thread = nil
+    end
+
+    def start
+      @thread = Thread.new do
+        EM.run do
+          ZM::Reactor.new(:my_reactor).run do |zm_reactor|
+            @zm_reactor = zm_reactor
+            self.instance_eval(&@block)
+          end
         end
       end
+    end
+
+    def join
+      if @thread
+        @thread.join
+      else
+        raise "Can't join on a node that isn't yet started"
+      end
+    end
+
+    def stop
+      @zm_reactor.stop
+      EM.stop
     end
 
     #TODO: All these need to be majorly DRYed up
