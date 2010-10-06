@@ -1,0 +1,186 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
+                    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <script src="../jquery.js"></script>
+  <script src="../jquery.json.js"></script>
+  <script src="../dripdrop.js"></script>
+  
+  <link rel="stylesheet" href="qunit.css" type="text/css" media="screen" />
+  <script type="text/javascript" src="qunit.js"></script>
+  <script type="text/javascript" src="jack.js"></script>
+
+<script>
+$(document).ready(function(){
+
+/* Test Helpers */
+function TSock()  {return new DD.WebSocket('ws://localhost:2702')};
+function THTTP()  {return new DD.HTTP('http://localhost:2703')};
+
+//Faked message to for a websocket
+function FakeWSMessage(ddMessage) {
+  var msg = (ddMessage === undefined) ? new DD.Message('test') : ddMessage;
+  this.data = msg.jsonEncoded();
+}
+
+/* Tests */
+
+test("The DD Singleton should be constructed from DripDrop", function() {
+  equals( DripDrop, DD.constructor, "Match");
+});
+
+module("DD.Message");
+
+  var msgVals = {
+    name: 'foo',
+    body: 'bar',
+    head: {key: 'baz'}
+  }
+  test("Creation: Name Only", function() {
+    var msg = new DD.Message(msgVals.name);
+    equals(msg.name, msgVals.name, "name");
+  });
+  test("Creation: Name + Body", function() {
+    var msg = new DD.Message(msgVals.name, {body : msgVals.body});
+    equals(msg.name, msgVals.name, "name");
+    equals(msg.body, msgVals.body, "body");
+  });
+  test("Creation: Name + Head + Body", function() {
+    var msg = new DD.Message(msgVals.name,
+                {body : msgVals.body, head : msgVals.head});
+    expect(3);
+    equals(msg.name, msgVals.name, "name");
+    equals(msg.head, msgVals.head, "head");
+    equals(msg.body, msgVals.body, "body");
+  });
+  test("Creation: No Head should still have head as an object", function() {
+    var msg = new DD.Message(msgVals.name);
+    equals(msg.head.constructor, Object, "head");
+  });
+
+  test("JSON Export", function() {
+    var msg = new DD.Message(msgVals.name,
+                {body : msgVals.body, head : msgVals.head});
+    equals(msg.jsonEncoded().constructor, String, "jsonEncoded");
+  });
+
+module("DD.WebSocket");
+  
+  test("Creating a websocket should make available the raw socket", function() {
+    var tSock = new TSock;
+    equals(tSock.socket.constructor, WebSocket,'raw socket');
+  });
+   
+  $([['onOpen','onopen'],
+     ['onClose','onclose'],
+     ['onError','onerror']]).each(function(i,pair) {
+    var dd_func = pair[0];
+    var ws_func = pair[1];
+    
+    test("DD function " + dd_func + " should set WS func " + ws_func, function() {
+      var tSock = new TSock;
+      var tFunc = function() {};
+      tSock[dd_func](tFunc);
+      equals(tSock.socket[ws_func], tFunc, "Func Set");
+    });
+  });
+  
+  test("onRecv should trigger the passed in callback", function() {
+    expect(3);
+    
+    var expectedMsg = new DD.Message('foo');
+    
+    var tSock = new TSock; 
+    tSock.onRecv(function(msg) {
+      ok(true, "Function executed");
+      equals(msg.constructor,DD.Message, "Is a DD.Message");
+      equals(msg.name, expectedMsg.name);
+    });
+    
+    tSock.socket.onmessage(new FakeWSMessage(expectedMsg));
+  });
+  
+  test("sendMessage should send a string to the websocket", function() {
+    expect(1);
+    
+    var tSock = new TSock;
+    var tMsg  = new DD.Message('foo');
+    tSock.socket.send = function(message) {
+      equals(tMsg.jsonEncoded(), message);
+    }
+    console.log(tSock.sendMessage)
+    tSock.sendMessage(tMsg);
+  });
+
+module("DD.HTTP");
+
+  test("Creation", function() {
+    var dht = new DD.HTTP;
+    equals(dht.constructor, DD.HTTP, "Constructor Match");
+  });
+  
+  test("Sending a message should call a get posting a JSON representation of the data",function() {
+    expect(1);
+    var tHTTP = new THTTP;
+    tHTTP.sendMessage();
+  });
+
+
+module("DD.Pipeline");
+
+  test("Creation", function() {
+    var pl = new DD.Pipeline;
+    equals(pl.constructor, DD.Pipeline, "Constructor Match");
+  });
+
+  test("Should expose the pipeline stages as an array", function() {
+    var pl = new DD.Pipeline;
+    equals(pl.stages.constructor, Array, "Constructor Match");
+  });
+
+  test("Should return null when no stages", function() {
+    equals((new DD.Pipeline).execute(new DD.Message('test')), null);
+  });
+
+  test("Should return null when no stages", function() {
+    equals((new DD.Pipeline).execute(new DD.Message('test')), null);
+  });
+
+  //This tests too many things at once, should be broken apart
+  test("Execution, Order, Message Transformation", function() {
+    expect(5);
+
+    var pl = new DD.Pipeline;
+    
+    var s1 = new DD.PipelineStage('t1','Test1',function(message) {
+               ok(true,"Test1 Executed");
+               equals(message.name,0,"Executed first job first");
+               message.name = 1;
+               return message;
+             });
+    var s2 = new DD.PipelineStage('t2','Test2',function(message) {
+               ok(true,"Test2 Executed");
+               equals(message.name,1,"Executed second job after first");
+               message.name = 2;
+               
+               return message;
+             });
+    pl.stages = [s1,s2];
+    
+    var resMsg = pl.execute(new DD.Message('0'));
+    equals(resMsg.name,2);
+  });
+
+}); //End of tests
+
+</script>
+  
+</head>
+<body>
+  <h1 id="qunit-header">DripDrop Tests</h1>
+ <h2 id="qunit-banner"></h2>
+ <h2 id="qunit-userAgent"></h2>
+ <ol id="qunit-tests"></ol>
+ <div id="qunit-fixture">test markup, will be hidden</div>
+</body>
+</html>
