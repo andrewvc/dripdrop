@@ -28,11 +28,24 @@ Thread.abort_on_exception = true
         #Sending a hash as a message implicitly transforms it into a DripDrop::Message
         pub.send_message(:name => 'test', :body => 'Test Payload')
       end
+      
+      http_server(addr).on_recv do |response,msg|
+        i += 1
+        response.send_message(msg)
+      end
+
+      EM::PeriodicTimer.new(1) do
+        client = http_client(addr)
+        msg = DripDrop::Message.new('http/status', :body => "Success #{i}")
+        client.send_message(msg) do |resp_msg|
+          puts resp_msg.inspect
+        end
+      end
     end.start! #Start the reactor and block until complete
 
-Want to see a longer example encapsulating both zmqmachine and eventmachine functionality? Check out [this file](http://github.com/andrewvc/dripdrop-webstats/blob/master/lib/dripdrop-webstats.rb), which encapsulates all the functionality of the diagram below:
+Note that these aren't regular ZMQ sockets, and that the HTTP server isn't a regular server. They only speak and respond using DripDrop::Message formatted messages. For HTTP/WebSockets it's JSON that looks like {name: 'name', head: {}, body: anything}, for ZeroMQ it means BERT. There is a raw made that you can use for other message formats, but using DripDrop::Messages makes things easier, and for some socket types (like XREQ/XREP) the predefined format is very useful in matching requests to replies.
 
-![topology](http://github.com/andrewvc/dripdrop/raw/master/doc_img/topology.png "Topology")
+Want to see a longer example encapsulating both zmqmachine and eventmachine functionality? Check out [this file](http://github.com/andrewvc/dripdrop-webstats/blob/master/lib/dripdrop-webstats.rb), which encapsulates all the functionality of the diagram below:
 
 #How It Works
 
