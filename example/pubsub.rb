@@ -16,4 +16,4 @@ DripDrop::Node.new do
     #Sending a hash as a message implicitly transforms it into a DripDrop::Message
     pub.send_message(:name => 'test', :body => 'Test Payload')
   end
-end
+end.start!

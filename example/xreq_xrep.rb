@@ -1,23 +1,26 @@
 require 'dripdrop/node'
 Thread.abort_on_exception = true
 
-DripDrop::Node.new do |node|
+DripDrop::Node.new do
   z_addr = 'tcp://127.0.0.1:2200'
    
-  rep = node.zmq_xrep(z_addr, :bind)
-  rep.on_recv do |identities,message|
+  rep = zmq_xrep(z_addr, :bind)
+  rep.on_recv do |identities,seq,message|
     puts "REP #{message.body}"
-    rep.send_message(identities,message)
+    rep.send_message(identities,seq,message)
   end
 
-  req = node.zmq_xreq(z_addr, :connect)
+  req = zmq_xreq(z_addr, :connect)
   
   i = 0
   k = 0
-  req.send_message(DripDrop::Message.new('test', :body => "Test Payload i#{i}")) do |message|
-    puts "RECV I RESP #{message.inspect}"
+
+  zm_reactor.periodical_timer(1000) do
+    req.send_message(DripDrop::Message.new('test', :body => "Test Payload i#{i}")) do |message|
+      puts "RECV I RESP #{message.inspect}"
+    end
+    req.send_message(DripDrop::Message.new('test', :body => "Test Payload k#{i}")) do |message|
+      puts "RECV K RESP #{message.inspect}"
+    end
   end
-  req.send_message(DripDrop::Message.new('test', :body => "Test Payload k#{i}")) do |message|
-    puts "RECV K RESP #{message.inspect}"
-  end
-end
+end.start!

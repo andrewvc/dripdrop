@@ -43,6 +43,12 @@ class DripDrop
       end
     end
 
+    #Blocking version of start, equivalent to +start+ then +join+
+    def start!
+      self.start
+      self.join
+    end
+
     def stop
       @zm_reactor.stop
       EM.stop
