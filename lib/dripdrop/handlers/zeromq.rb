@@ -58,7 +58,11 @@ class DripDrop
           if part.class == ZMQ::Message
             socket.send_message(part, multipart)
           else
-            socket.send_message_string(part, multipart)
+            if part.class == String
+              socket.send_message_string(part, multipart)
+            else
+              raise "Can only send Strings, not #{part.class}: #{part}"
+            end
           end
         end
       else
