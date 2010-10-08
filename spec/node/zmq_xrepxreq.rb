@@ -57,7 +57,7 @@ describe "zmq xreq/xrep" do
     it "should send responses back to the proper xreq sender" do
       received_count = 0
       
-      @ddn = DripDrop::Node.new do
+      ddn = DripDrop::Node.new do
         addr = rand_addr
         
         rep  = zmq_xrep(addr, :bind)
@@ -82,8 +82,9 @@ describe "zmq xreq/xrep" do
         end
         end
       end
-      @ddn.start 
-      sleep 0.1
+      ddn.start 
+      sleep 0.2
+      ddn.stop rescue nil
       
       received_count.should == 20
     end
