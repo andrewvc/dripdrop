@@ -84,7 +84,7 @@ describe "zmq xreq/xrep" do
       end
       ddn.start 
       sleep 0.2
-      ddn.stop rescue nil
+      ddn.stop rescue nil #This should work...
       
       received_count.should == 20
     end

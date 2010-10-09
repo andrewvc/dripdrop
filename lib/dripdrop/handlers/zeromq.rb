@@ -8,7 +8,7 @@ class DripDrop
       @address      = address
       @zm_reactor   = zm_reactor
       @socket_ctype = socket_ctype # :bind or :connect
-      @debug        = opts[:debug]
+      @debug        = opts[:debug] # TODO: Start actually using this
     end
     
     def on_attach(socket)
@@ -18,7 +18,7 @@ class DripDrop
       elsif @socket_ctype == :connect
         socket.connect(@address)
       else
-        raise "Unsupported socket ctype '#{@socket_ctype}'"
+        raise "Unsupported socket ctype '#{@socket_ctype}'. Expected :bind or :connect"
       end
     end
      
@@ -29,6 +29,8 @@ class DripDrop
     end
 
     private
+  
+    # Normalize Hash objs and DripDrop::Message objs into DripDrop::Message objs
     def dd_messagify(message)
       if message.is_a?(Hash)
         return DripDrop::Message.new(message[:name], :head => message[:head], 
@@ -47,19 +49,20 @@ class DripDrop
       @send_queue = []
     end
 
-    #Send any messages buffered in @send_queue
     def on_writable(socket)
       unless @send_queue.empty?
         message = @send_queue.shift
         
         num_parts = message.length
         message.each_with_index do |part,i|
-          multipart = i + 1 < num_parts ? true : false
+          # Set the multi-part flag unless this is the last message
+          multipart_flag = i + 1 < num_parts ? true : false
+          
           if part.class == ZMQ::Message
-            socket.send_message(part, multipart)
+            socket.send_message(part, multipart_flag)
           else
             if part.class == String
-              socket.send_message_string(part, multipart)
+              socket.send_message_string(part, multipart_flag)
             else
               raise "Can only send Strings, not #{part.class}: #{part}"
             end
@@ -70,7 +73,10 @@ class DripDrop
       end
     end
 
-    #Sends a message along
+    # Sends a message, accepting either a DripDrop::Message,
+    # a hash that looks like a DripDrop::Message (has keys :name, :head, :body),
+    # or your own custom messages. Custom messages should either be a String, or
+    # for multipart messages, an Array of String objects.
     def send_message(message)
       dd_message = dd_messagify(message)
       if dd_message.is_a?(DripDrop::Message)
