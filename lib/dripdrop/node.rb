@@ -56,6 +56,7 @@ class DripDrop
 
     #TODO: All these need to be majorly DRYed up
      
+    # Creates a ZMQ::SUB type socket. Can only receive messages via +on_recv+
     def zmq_subscribe(address,socket_ctype,opts={},&block)
       zm_addr = str_to_zm_address(address)
       h_opts  = handler_opts_given(opts)
@@ -64,6 +65,7 @@ class DripDrop
       handler
     end
 
+    # Creates a ZMQ::PUB type socket, can only send messages via +send_message+
     def zmq_publish(address,socket_ctype,opts={})
       zm_addr = str_to_zm_address(address)
       h_opts  = handler_opts_given(opts)
@@ -72,6 +74,7 @@ class DripDrop
       handler
     end
 
+    # Creates a ZMQ::PULL type socket. Can only receive messages via +on_recv+
     def zmq_pull(address,socket_ctype,opts={},&block)
       zm_addr = str_to_zm_address(address)
       h_opts  = handler_opts_given(opts)
@@ -80,6 +83,7 @@ class DripDrop
       handler
     end
 
+    # Creates a ZMQ::PUSH type socket, can only send messages via +send_message+
     def zmq_push(address,socket_ctype,opts={})
       zm_addr = str_to_zm_address(address)
       h_opts  = handler_opts_given(opts)
@@ -88,6 +92,17 @@ class DripDrop
       handler
     end
     
+    # Creates a ZMQ::XREP type socket, both sends and receivesc XREP sockets are extremely
+    # powerful, so their functionality is currently limited. XREP sockets in DripDrop can reply
+    # to the original source of the message.
+    #
+    # Receiving with XREP sockets in DripDrop is different than other types of sockets, on_recv
+    # passes 3 arguments to its callback, +identities+, +seq+, and +message+. Identities is the 
+    # socket identity, seq is the sequence number of the message (all messages received at the socket
+    # get a monotonically incrementing +seq+, and +message+ is the message itself.
+    # 
+    # To reply from an xrep handler, be sure to call send messages with the same +identities+ and +seq+
+    # arguments that +on_recv+ had. So, send_message takes +identities+, +seq+, and +message+.
     def zmq_xrep(address,socket_ctype,opts={})
       zm_addr = str_to_zm_address(address)
       h_opts  = handler_opts_given(opts)
@@ -96,6 +111,7 @@ class DripDrop
       handler
     end
  
+    # See the documentation for +zmq_xrep+ for more info
     def zmq_xreq(address,socket_ctype,opts={})
       zm_addr = str_to_zm_address(address)
       h_opts  = handler_opts_given(opts)
