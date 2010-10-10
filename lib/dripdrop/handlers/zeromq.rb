@@ -184,8 +184,7 @@ class DripDrop
     def send_message(identities,seq,message)
       if message.is_a?(DripDrop::Message)
         message.head['_dripdrop/x_seq_counter'] = seq
-        @send_queue.push(identities + [message.encoded])
-        @zm_reactor.register_writable(@socket)
+        super(identities + [message.encoded])
       else
         super(message)
       end
@@ -211,12 +210,14 @@ class DripDrop
     end
 
     def send_message(message,&block)
-      if message.is_a?(DripDrop::Message)
+      dd_message = dd_messagify(message)
+      if dd_message.is_a?(DripDrop::Message)
         @seq_counter += 1
-        message.head['_dripdrop/x_seq_counter'] = @seq_counter
-        @promises[@seq_counter] = block
-        super(message)
+        dd_message.head['_dripdrop/x_seq_counter'] = @seq_counter
+        @promises[@seq_counter] = block if block
+        message = dd_message
       end
+      super(message)
     end
   end
 end
