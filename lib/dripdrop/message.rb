@@ -14,7 +14,7 @@ class DripDrop
   # Internally, they're just stored as BERT, which is great because if you don't use JSON
   # things like symbols and binary data are transmitted more efficiently and transparently.
   #
-  # The basic message format is built to mimic HTTP (s/url_path/name). Why? Because I'm a dumb web developer :)
+  # The basic message format is built to mimic HTTP (s/url_path/name/). Why? Because I'm a dumb web developer :)
   # The name is kind of like the URL, its what kind of message this is, but it's a loose definition,
   # use it as you see fit.
   # head should be used for metadata, body for the actual data.
@@ -27,10 +27,10 @@ class DripDrop
     #   DripDrop::Message.new('mymessage', :head => {:timestamp => Time.now}, 
     #     :body => {:mykey => :myval,  :other_key => ['complex']})
     def initialize(name,extra={})
-      raise "No null chars allowed in message names!" if name.include?("\0")
+      raise ArgumentError, "Message names may not be empty or null!" if name.nil? || name.empty?
        
       @head = extra[:head] || {}
-      raise "Message head must be a hash!" unless @head.is_a?(Hash)
+      raise ArgumentError, "Invalid head #{@head}. Head must be a hash!" unless @head.is_a?(Hash)
       
       @name = name
       @body = extra[:body]
@@ -42,14 +42,22 @@ class DripDrop
     end
     
     # Encodes the hash represntation of the message to JSON
-    def encode_json
+    def json_encoded
       self.to_hash.to_json
     end
+    # (Deprecated, use json_encoded)
+    def encode_json; json_encoded; end
 
     # Convert the Message to a hash like:
     # {:name => @name, :head => @head, :body => @body}
     def to_hash
       {:name => @name, :head => @head, :body => @body}
+    end
+    
+    # Build a new Message from a hash that looks like
+    #    {:name => name, :body => body, :head => head}
+    def self.from_hash(hash)
+      self.new(hash[:name],:head => hash[:head], :body => hash[:body])
     end
 
     # Parses an already encoded string
@@ -76,13 +84,6 @@ class DripDrop
         return nil
       end
       self.new(json_hash['name'], :head => json_hash['head'], :body => json_hash['body'])
-    end
-
-    private
-    
-    #Sanitize a string so it'll look good for JSON, BERT, and MongoDB
-    def sanitize_structure(structure)
-      #TODO: Make this work, and called for head, and body
     end
   end
 end
