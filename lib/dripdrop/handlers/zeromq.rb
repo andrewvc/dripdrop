@@ -3,14 +3,14 @@ require 'ffi-rzmq'
 class DripDrop
   class ZMQBaseHandler
     attr_reader :address, :socket_ctype, :socket
-    
+
     def initialize(address,zm_reactor,socket_ctype,opts={})
       @address      = address
       @zm_reactor   = zm_reactor
       @socket_ctype = socket_ctype # :bind or :connect
       @debug        = opts[:debug] # TODO: Start actually using this
     end
-    
+
     def on_attach(socket)
       @socket = socket
       if    @socket_ctype == :bind
@@ -21,19 +21,19 @@ class DripDrop
         raise "Unsupported socket ctype '#{@socket_ctype}'. Expected :bind or :connect"
       end
     end
-     
+
     def on_recv(msg_format=:dripdrop,&block)
-      @msg_format = msg_format 
+      @msg_format = msg_format
       @recv_cbak = block
       self
     end
 
     private
-  
+
     # Normalize Hash objs and DripDrop::Message objs into DripDrop::Message objs
     def dd_messagify(message)
       if message.is_a?(Hash)
-        return DripDrop::Message.new(message[:name], :head => message[:head], 
+        return DripDrop::Message.new(message[:name], :head => message[:head],
                                                      :body => message[:body])
       elsif message.is_a?(DripDrop::Message)
         return message
@@ -52,12 +52,12 @@ class DripDrop
     def on_writable(socket)
       unless @send_queue.empty?
         message = @send_queue.shift
-        
+
         num_parts = message.length
         message.each_with_index do |part,i|
           # Set the multi-part flag unless this is the last message
           multipart_flag = i + 1 < num_parts ? true : false
-          
+
           if part.class == ZMQ::Message
             socket.send_message(part, multipart_flag)
           else
@@ -89,7 +89,7 @@ class DripDrop
       @zm_reactor.register_writable(@socket)
     end
   end
-  
+
   module ZMQReadableHandler
     def initialize(*args)
       super(*args)
@@ -108,12 +108,13 @@ class DripDrop
       end
     end
   end
-  
+
   class ZMQSubHandler < ZMQBaseHandler
     include ZMQReadableHandler
-    
+
     attr_reader :address, :socket_ctype
-    
+    attr_accessor :topic_filter
+
     def on_attach(socket)
       super(socket)
       socket.subscribe('')
@@ -122,21 +123,23 @@ class DripDrop
     def on_readable(socket, messages)
       if @msg_format == :dripdrop
         unless messages.length == 2
-          puts "Expected pub/sub message to come in two parts, not #{messages.length}: #{messages.inspect}" 
+          puts "Expected pub/sub message to come in two parts, not #{messages.length}: #{messages.inspect}"
           return false
         end
         topic = messages.shift.copy_out_string
-        body  = messages.shift.copy_out_string
-        msg   = @recv_cbak.call(DripDrop::Message.decode(body))
+        if @topic_filter.nil? || topic.match(@topic_filter)
+          body  = messages.shift.copy_out_string
+          msg   = @recv_cbak.call(DripDrop::Message.decode(body))
+        end
       else
         super(socket,messages)
       end
     end
   end
-  
+
   class ZMQPubHandler < ZMQBaseHandler
     include ZMQWritableHandler
-    
+
     #Sends a message along
     def send_message(message)
       dd_message = dd_messagify(message)
@@ -150,13 +153,13 @@ class DripDrop
 
   class ZMQPullHandler < ZMQBaseHandler
     include ZMQReadableHandler
-    
+
 
   end
 
   class ZMQPushHandler < ZMQBaseHandler
     include ZMQWritableHandler
-    
+
     def on_writable(socket)
       unless @send_queue.empty?
         message = @send_queue.shift
@@ -165,7 +168,7 @@ class DripDrop
         @zm_reactor.deregister_writable(socket)
       end
     end
-    
+
     #Sends a message along
     def send_message(message)
       if message.is_a?(DripDrop::Message)
@@ -180,11 +183,11 @@ class DripDrop
   class ZMQXRepHandler < ZMQBaseHandler
     include ZMQWritableHandler
     include ZMQReadableHandler
-    
+
     def initialize(*args)
       super(*args)
     end
-    
+
     def on_readable(socket,messages)
       if @msg_format == :dripdrop
         identities = messages[0..-2].map {|m| m.copy_out_string}
@@ -211,13 +214,13 @@ class DripDrop
   class ZMQXReqHandler < ZMQBaseHandler
     include ZMQWritableHandler
     include ZMQReadableHandler
-    
+
     def initialize(*args)
       super(*args)
       #Used to keep track of responses
       @seq_counter = 0
       @promises = {}
-      
+
       self.on_recv do |message|
         seq = message.head['_dripdrop/x_seq_counter']
         raise "Missing Seq Counter" unless seq
@@ -225,7 +228,7 @@ class DripDrop
         promise.call(message)
       end
     end
-    
+
     def send_message(message,&block)
       if message.is_a?(DripDrop::Message)
         @seq_counter += 1
