@@ -159,25 +159,6 @@ class DripDrop
 
   class ZMQPushHandler < ZMQBaseHandler
     include ZMQWritableHandler
-
-    def on_writable(socket)
-      unless @send_queue.empty?
-        message = @send_queue.shift
-        socket.send_message_string(message)
-      else
-        @zm_reactor.deregister_writable(socket)
-      end
-    end
-
-    #Sends a message along
-    def send_message(message)
-      if message.is_a?(DripDrop::Message)
-        @send_queue.push(message.encoded)
-        @zm_reactor.register_writable(@socket)
-      else
-        @send_queue.push(message)
-      end
-    end
   end
 
   class ZMQXRepHandler < ZMQBaseHandler
