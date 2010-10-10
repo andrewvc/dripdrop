@@ -22,7 +22,7 @@ describe "zmq xreq/xrep" do
     
     @ddn.start
     sleep 0.1
-    @ddn.stop
+    @ddn.stop rescue nil
     
     {:responses => responses, :handlers => {:req => req, :rep => rep}}
   end
