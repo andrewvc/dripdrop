@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dripdrop}
-  s.version = "0.1.0"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrew Cholakian"]
-  s.date = %q{2010-09-07}
+  s.date = %q{2010-10-10}
   s.description = %q{0MQ App stats}
   s.email = %q{andrew@andrewvc.com}
   s.extra_rdoc_files = [
@@ -30,19 +30,34 @@ Gem::Specification.new do |s|
      "example/pubsub.rb",
      "example/pushpull.rb",
      "example/xreq_xrep.rb",
+     "js/dripdrop.html",
+     "js/dripdrop.js",
+     "js/jack.js",
+     "js/qunit.css",
+     "js/qunit.js",
      "lib/dripdrop.rb",
      "lib/dripdrop/agent.rb",
      "lib/dripdrop/handlers/http.rb",
      "lib/dripdrop/handlers/websockets.rb",
      "lib/dripdrop/handlers/zeromq.rb",
      "lib/dripdrop/message.rb",
-     "lib/dripdrop/node.rb"
+     "lib/dripdrop/node.rb",
+     "spec/node/zmq_pushpull.rb",
+     "spec/node/zmq_xrepxreq.rb",
+     "spec/node_spec.rb",
+     "spec/spec_helper.rb"
   ]
   s.homepage = %q{http://github.com/andrewvc/dripdrop}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{0MQ App Stats}
+  s.test_files = [
+    "spec/node/zmq_pushpull.rb",
+     "spec/node/zmq_xrepxreq.rb",
+     "spec/node_spec.rb",
+     "spec/spec_helper.rb"
+  ]
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
