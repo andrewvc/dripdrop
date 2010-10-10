@@ -6,8 +6,8 @@ DripDrop is ZeroMQ(using zmqmachine) + Event Machine simplified for the general 
 
 Here's an example of the kind of thing DripDrop makes easy, from [examples/pubsub.rb](http://github.com/andrewvc/dripdrop/blob/master/example/pubsub.rb)
  
-require 'dripdrop/node'
-Thread.abort_on_exception = true
+    require 'dripdrop/node'
+    Thread.abort_on_exception = true
 
     #Define our handlers
     DripDrop::Node.new do
