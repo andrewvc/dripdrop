@@ -16,6 +16,6 @@ DripDrop::Node.new do
   zm_reactor.periodical_timer(800) do
     i += 1
     puts i
-    push.send_message(DripDrop::Message.new('test', :body => "Test Payload #{i}"))
+    push.send_message(:name => 'test', :body => "Test Payload #{i}")
   end
 end.start!
