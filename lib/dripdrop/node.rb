@@ -121,6 +121,15 @@ class DripDrop
       handler
     end
 
+    # An inprocess pub/sub queue that works similarly to EM::Channel, 
+    # but has manually specified identifiers for subscribers letting you
+    # more easily delete subscribers without crazy id tracking.
+    #  
+    # This is useful for situations where you want to broadcast messages across your app,
+    # but need a way to properly delete listeners.
+    # 
+    # +dest+ is the name of the pub/sub channel.
+    # +data+ is any type of ruby var you'd like to send.
     def send_internal(dest,data)
       return false unless @recipients_for[dest]
       blocks = @recipients_for[dest].values
@@ -130,6 +139,9 @@ class DripDrop
       end
     end
 
+    # Defines a subscriber to the channel +dest+, to receive messages from +send_internal+.
+    # +identifier+ is a unique identifier for this receiver.
+    # The identifier can be used by +remove_recv_internal+ 
     def recv_internal(dest,identifier,&block)
       if @recipients_for[dest]
         @recipients_for[dest][identifier] =  block
@@ -138,6 +150,8 @@ class DripDrop
       end
     end
 
+    # Deletes a subscriber to the channel +dest+ previously identified by a
+    # reciever created with +recv_internal+
     def remove_recv_internal(dest,identifier)
       return false unless @recipients_for[dest]
       @recipients_for[dest].delete(identifier)
