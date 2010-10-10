@@ -3,22 +3,29 @@ require 'bert'
 require 'json'
 
 class DripDrop
-  #DripDrop::Message messages are exchanged between all tiers in the architecture
-  #A Message is composed of a name, head, and body, and should be restricted to types that
-  #can be readily encoded to JSON, that means hashes, arrays, strings, integers, and floats
-  #internally, they're just stored as BERT
+  # DripDrop::Message messages are exchanged between all tiers in the architecture
+  # A Message is composed of a name, head, and body, and should be restricted to types that
+  # can be readily encoded to JSON. 
+  # name: Any string
+  # head: A hash containing anything (should be used for metadata)
+  # body: anything you'd like, it can be null even
   #
-  #The basic message format is built to mimic HTTP. Why? Because I'm a dumb web developer :)
-  #The name is kind of like the URL, its what kind of message this is.
-  #head should be used for metadata, body for the actual data.
-  #These definitions are intentionally loose, because protocols tend to be used loosely.
+  # Hashes, arrays, strings, integers, symbols, and floats are probably what you should stick to.
+  # Internally, they're just stored as BERT, which is great because if you don't use JSON
+  # things like symbols and binary data are transmitted more efficiently and transparently.
+  #
+  # The basic message format is built to mimic HTTP (s/url_path/name). Why? Because I'm a dumb web developer :)
+  # The name is kind of like the URL, its what kind of message this is, but it's a loose definition,
+  # use it as you see fit.
+  # head should be used for metadata, body for the actual data.
+  # These definitions are intentionally loose, because protocols tend to be used loosely.
   class Message
     attr_accessor :name, :head, :body
     
-    #Create a new message.
-    #example:
-    #  Message.new('mymessage', :head => {:timestamp => Time.now}, 
-    #    :body => {:mykey => :myval,  :other_key => ['complex']})
+    # Creates a new message.
+    # example:
+    #   DripDrop::Message.new('mymessage', :head => {:timestamp => Time.now}, 
+    #     :body => {:mykey => :myval,  :other_key => ['complex']})
     def initialize(name,extra={})
       raise "No null chars allowed in message names!" if name.include?("\0")
        
@@ -29,23 +36,25 @@ class DripDrop
       @body = extra[:body]
     end
     
-    #The encoded message, ready to be sent across the wire via ZMQ
+    # The encoded message, ready to be sent across the wire via ZMQ
     def encoded
       BERT.encode(self.to_hash)
     end
     
+    # Encodes the hash represntation of the message to JSON
     def encode_json
       self.to_hash.to_json
     end
 
-    #Convert the Message to a hash like:
-    #{:name => @name, :head => @head, :body => @body}
+    # Convert the Message to a hash like:
+    # {:name => @name, :head => @head, :body => @body}
     def to_hash
       {:name => @name, :head => @head, :body => @body}
     end
 
-    #Parses an already encoded string
+    # Parses an already encoded string
     def self.decode(*args); self.parse(*args) end
+    # (Deprecated). Use decode instead
     def self.parse(msg)
       return nil if msg.nil? || msg.empty?
       #This makes parsing ZMQ messages less painful, even if its ugly here
@@ -58,6 +67,7 @@ class DripDrop
       self.new(decoded[:name], :head => decoded[:head], :body => decoded[:body])
     end
 
+    # Decodes a string containing a JSON representation of a message
     def self.decode_json(str)
       begin
         json_hash = JSON.parse(str)

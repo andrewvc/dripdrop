@@ -49,7 +49,7 @@ Want to see a longer example encapsulating both zmqmachine and eventmachine func
 
 #RDoc
 
-RDocs can be found [here](http://www.rdoc.info/github/andrewvc/dripdrop/master/frames)
+RDocs can be found [here](http://www.rdoc.info/github/andrewvc/dripdrop/master/frames). Most of the interesting stuff is in the [Node](http://www.rdoc.info/github/andrewvc/dripdrop/master/DripDrop/Node) and [Message](http://www.rdoc.info/github/andrewvc/dripdrop/master/frames) classes.
 
 #How It Works
 
