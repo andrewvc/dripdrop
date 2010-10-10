@@ -16,10 +16,10 @@ DripDrop::Node.new do
   k = 0
 
   zm_reactor.periodical_timer(1000) do
-    req.send_message(DripDrop::Message.new('test', :body => "Test Payload i#{i}")) do |message|
+    req.send_message(:name => 'test', :body => "Test Payload i#{i}") do |message|
       puts "RECV I RESP #{message.inspect}"
     end
-    req.send_message(DripDrop::Message.new('test', :body => "Test Payload k#{i}")) do |message|
+    req.send_message(:name => 'test', :body => "Test Payload k#{i}") do |message|
       puts "RECV K RESP #{message.inspect}"
     end
   end
