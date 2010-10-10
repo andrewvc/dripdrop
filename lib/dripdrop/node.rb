@@ -24,6 +24,8 @@ class DripDrop
       @thread = nil
     end
 
+    # Starts the reactors and runs the block passed to initialize.
+    # This is non-blocking.
     def start
       @thread = Thread.new do
         EM.run do
@@ -35,6 +37,9 @@ class DripDrop
       end
     end
 
+    # If the reactor has started, this blocks until the thread 
+    # running the reactor joins. This should block forever
+    # unless +stop+ is called.
     def join
       if @thread
         @thread.join
@@ -43,55 +48,38 @@ class DripDrop
       end
     end
 
-    #Blocking version of start, equivalent to +start+ then +join+
+    # Blocking version of start, equivalent to +start+ then +join+
     def start!
       self.start
       self.join
     end
 
+    # Stops the reactors. If you were blocked on #join, that will unblock.
     def stop
       @zm_reactor.stop
       EM.stop
     end
 
-    #TODO: All these need to be majorly DRYed up
-     
     # Creates a ZMQ::SUB type socket. Can only receive messages via +on_recv+
     def zmq_subscribe(address,socket_ctype,opts={},&block)
-      zm_addr = str_to_zm_address(address)
-      h_opts  = handler_opts_given(opts)
-      handler = DripDrop::ZMQSubHandler.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
-      @zm_reactor.sub_socket(handler)
-      handler
+      zmq_handler(DripDrop::ZMQSubHandler,:sub_socket,address,socket_ctype,opts={})
     end
 
     # Creates a ZMQ::PUB type socket, can only send messages via +send_message+
     def zmq_publish(address,socket_ctype,opts={})
-      zm_addr = str_to_zm_address(address)
-      h_opts  = handler_opts_given(opts)
-      handler = DripDrop::ZMQPubHandler.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
-      @zm_reactor.pub_socket(handler)
-      handler
+      zmq_handler(DripDrop::ZMQPubHandler,:pub_socket,address,socket_ctype,opts={})
     end
 
     # Creates a ZMQ::PULL type socket. Can only receive messages via +on_recv+
     def zmq_pull(address,socket_ctype,opts={},&block)
-      zm_addr = str_to_zm_address(address)
-      h_opts  = handler_opts_given(opts)
-      handler = DripDrop::ZMQPullHandler.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
-      @zm_reactor.pull_socket(handler)
-      handler
+      zmq_handler(DripDrop::ZMQPullHandler,:pull_socket,address,socket_ctype,opts={})
     end
 
     # Creates a ZMQ::PUSH type socket, can only send messages via +send_message+
     def zmq_push(address,socket_ctype,opts={})
-      zm_addr = str_to_zm_address(address)
-      h_opts  = handler_opts_given(opts)
-      handler = DripDrop::ZMQPushHandler.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
-      @zm_reactor.push_socket(handler)
-      handler
+      zmq_handler(DripDrop::ZMQPushHandler,:push_socket,address,socket_ctype,opts={})
     end
-    
+
     # Creates a ZMQ::XREP type socket, both sends and receivesc XREP sockets are extremely
     # powerful, so their functionality is currently limited. XREP sockets in DripDrop can reply
     # to the original source of the message.
@@ -104,22 +92,14 @@ class DripDrop
     # To reply from an xrep handler, be sure to call send messages with the same +identities+ and +seq+
     # arguments that +on_recv+ had. So, send_message takes +identities+, +seq+, and +message+.
     def zmq_xrep(address,socket_ctype,opts={})
-      zm_addr = str_to_zm_address(address)
-      h_opts  = handler_opts_given(opts)
-      handler = DripDrop::ZMQXRepHandler.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
-      @zm_reactor.xrep_socket(handler)
-      handler
+      zmq_handler(DripDrop::ZMQXRepHandler,:xrep_socket,address,socket_ctype,opts={})
     end
  
     # See the documentation for +zmq_xrep+ for more info
     def zmq_xreq(address,socket_ctype,opts={})
-      zm_addr = str_to_zm_address(address)
-      h_opts  = handler_opts_given(opts)
-      handler = DripDrop::ZMQXReqHandler.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
-      @zm_reactor.xreq_socket(handler)
-      handler
+      zmq_handler(DripDrop::ZMQXReqHandler,:xreq_socket,address,socket_ctype,opts={})
     end
-    
+
     def websocket(address,opts={},&block)
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
@@ -165,10 +145,14 @@ class DripDrop
 
     private
     
-    def str_to_zm_address(str)
-      addr_uri = URI.parse(str)
-      ZM::Address.new(addr_uri.host,addr_uri.port.to_i,addr_uri.scheme.to_sym)
-    end
+    def zmq_handler(klass, zm_sock_type, address, socket_ctype, opts={})
+      addr_uri = URI.parse(address)
+      zm_addr  = ZM::Address.new(addr_uri.host,addr_uri.port.to_i,addr_uri.scheme.to_sym)
+      h_opts   = handler_opts_given(opts)
+      handler  = klass.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
+      @zm_reactor.send(zm_sock_type,handler)
+      handler
+    end   
     
     def handler_opts_given(opts)
       @handler_default_opts.merge(opts)
