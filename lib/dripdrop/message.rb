@@ -72,7 +72,7 @@ class DripDrop
         return nil if msg.empty?
       end
       decoded = BERT.decode(msg)
-      self.new(decoded[:name], :head => decoded[:head], :body => decoded[:body])
+      self.from_hash(decoded)
     end
 
     # Decodes a string containing a JSON representation of a message
