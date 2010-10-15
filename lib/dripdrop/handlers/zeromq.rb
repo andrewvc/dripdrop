@@ -1,6 +1,13 @@
 require 'ffi-rzmq'
 
 class DripDrop
+  #Setup the default message class handler first
+  class << self
+    attr_accessor :default_message_class
+
+    DripDrop.default_message_class = DripDrop::Message
+  end
+
   class ZMQBaseHandler
     attr_reader :address, :socket_ctype, :socket
 
@@ -91,8 +98,15 @@ class DripDrop
   end
 
   module ZMQReadableHandler
+    attr_accessor :message_class
+
     def initialize(*args)
       super(*args)
+      @message_class = DripDrop.default_message_class
+    end
+
+    def decode_message(msg)
+      @message_class.decode(msg)
     end
 
     def on_readable(socket, messages)
@@ -102,7 +116,7 @@ class DripDrop
       when :dripdrop
         raise "Expected message in one part" if messages.length > 1
         body  = messages.shift.copy_out_string
-        @recv_cbak.call(DripDrop::Message.decode(body))
+        @recv_cbak.call(decode_message(body))
       else
         raise "Unknown message format '#{@msg_format}'"
       end
@@ -129,7 +143,7 @@ class DripDrop
         topic = messages.shift.copy_out_string
         if @topic_filter.nil? || topic.match(@topic_filter)
           body  = messages.shift.copy_out_string
-          msg   = @recv_cbak.call(DripDrop::Message.decode(body))
+          msg   = @recv_cbak.call(decode_message(body))
         end
       else
         super(socket,messages)
@@ -173,7 +187,7 @@ class DripDrop
       if @msg_format == :dripdrop
         identities = messages[0..-2].map {|m| m.copy_out_string}
         body  = messages.last.copy_out_string
-        message = DripDrop::Message.decode(body)
+        message = decode_message(body)
         seq     = message.head['_dripdrop/x_seq_counter']
         @recv_cbak.call(identities,seq,message)
       else
