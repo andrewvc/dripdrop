@@ -100,13 +100,24 @@ class DripDrop
       zmq_handler(DripDrop::ZMQXReqHandler,:xreq_socket,address,socket_ctype,opts={})
     end
 
-    def websocket(address,opts={},&block)
+    # Binds an EM websocket connection to +address+. takes blocks for
+    # +on_open+, +on_recv+, +on_close+ and +on_error+.
+    #
+    # For example +on_recv+ could be used to echo incoming messages thusly:
+    #    websocket(addr).on_recv {|msg,websocket| ws.send(msg)}
+    #
+    # All other events only receive the +websocket+ object, which corresponds
+    # not to the +DripDrop::WebSocketHandler+ object, but to an em-websocket object.
+    def websocket(address,opts={})
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
       handler = DripDrop::WebSocketHandler.new(uri,h_opts)
       handler
     end
     
+    # Starts a new Thin HTTP server listening on address.
+    # Can have an +on_recv+ handler that gets passed a single +response+ arg.
+    #    http_server(addr) {|response,msg| response.send_message(msg)}
     def http_server(address,opts={},&block)
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
@@ -114,6 +125,12 @@ class DripDrop
       handler
     end
     
+    # An EM HTTP client.
+    # Example:
+    #    client = http_client(addr)
+    #    client.send_message(:name => 'name', :body => 'hi') do |resp_msg|
+    #      puts resp_msg.inspect
+    #    end
     def http_client(address,opts={})
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
