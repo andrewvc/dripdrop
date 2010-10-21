@@ -1,5 +1,9 @@
 require 'spec_helper'
 
+class SpecMessageClass < DripDrop::Message
+  include DripDrop::SubclassedMessage
+end
+
 describe DripDrop::Message do
   describe "basic message" do
     def create_basic
@@ -23,8 +27,8 @@ describe DripDrop::Message do
           DripDrop::Message.new('nameonly')
         }.should_not raise_exception
       end
-      it "should set the head to an empty hash if nil provided" do
-        DripDrop::Message.new('nilhead', :head => nil).head.should == {}
+      it "should set the head to a single key hash containing message class if nil provided" do
+        DripDrop::Message.new('nilhead', :head => nil).head.should == {:msg_class => 'DripDrop::Message'}
       end
       it "should raise an exception if a non-hash, non-nil head is provided" do
         lambda {
@@ -57,6 +61,38 @@ describe DripDrop::Message do
       end
       it "should be able to turn hash representations back into Message objs" do
         DripDrop::Message.from_hash(@message.to_hash).should be_a(DripDrop::Message)
+      end
+    end
+    describe "subclassing" do
+      def create_auto_message
+        attrs = {
+          :name => 'test',
+          :head => {:foo => :bar, :msg_class => 'SpecMessageClass'},
+          :body => [:foo, :bar, :baz]
+        }
+
+        message = DripDrop::AutoMessageClass.create_message(attrs)
+
+        [message, attrs]
+      end
+      before(:all) do
+        @message, @attrs = create_auto_message
+      end
+      it "should be added to the subclass message class hash if SubclassedMessage included" do
+        DripDrop::AutoMessageClass.message_subclasses.should include('SpecMessageClass' => SpecMessageClass)
+      end
+      it "should throw an exception if we try to recreate a message of the wrong class" do
+        msg = DripDrop::Message.new('test')
+        lambda{SpecMessageClass.recreate_message(msg.to_hash)}.should raise_exception
+      end
+
+      describe "DripDrop::AutoMessageClass" do
+        it "should create a properly classed message based on head[:msg_class]" do
+          @message.should be_a(SpecMessageClass)
+        end
+        it "should recreate a message based on head[:msg_class]" do
+          DripDrop::AutoMessageClass.recreate_message(@message.to_hash).should be_a(SpecMessageClass)
+        end
       end
     end
   end
