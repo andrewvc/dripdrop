@@ -104,7 +104,7 @@ class DripDrop
     # +on_open+, +on_recv+, +on_close+ and +on_error+.
     #
     # For example +on_recv+ could be used to echo incoming messages thusly:
-    #    websocket(addr).on_recv {|msg,websocket| ws.send(msg)}
+    #    websocket(addr).on_recv {|msg,websocket| websocket.send(msg)}
     #
     # All other events only receive the +websocket+ object, which corresponds
     # not to the +DripDrop::WebSocketHandler+ object, but to an em-websocket object.
