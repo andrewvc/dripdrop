@@ -14,7 +14,7 @@ describe "http" do
       
       client = http_client(addr)
       
-      server = http_server(addr).on_recv do |response,message|
+      server = http_server(addr).on_recv do |message,response|
         $stdout.flush
         responses << message
         response.send_message(message)
