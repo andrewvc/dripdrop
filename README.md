@@ -57,7 +57,5 @@ DripDrop encapsulates both zmqmachine, and eventmachine. It provides some sane d
 
 #Contributors
 
-Andrew Cholakian: [andrewvc](http://github.com/andrewvc)
-John W Higgins: [wishdev](http://github.com/wishdev)
-
-Copyright (c) 2010 Andrew Cholakian. See LICENSE for details.
+* Andrew Cholakian: [andrewvc](http://github.com/andrewvc)
+* John W Higgins: [wishdev](http://github.com/wishdev)
