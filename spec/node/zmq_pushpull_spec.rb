@@ -29,7 +29,7 @@ describe "zmq push/pull" do
     
     @ddn.start
     sleep 0.1
-    @ddn.stop
+    @ddn.stop rescue nil
     
     {:responses => responses, :handlers => { :push => push, :pull => [pull] }}
   end
