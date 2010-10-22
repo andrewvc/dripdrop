@@ -5,13 +5,16 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "dripdrop"
-    gem.summary = %Q{0MQ App Stats}
-    gem.description = %Q{0MQ App stats}
+    gem.summary = %Q{Evented framework for ZeroMQ and EventMachine Apps.}
+    gem.description = %Q{Evented framework for ZeroMQ and EventMachine Apps. }
     gem.email = "andrew@andrewvc.com"
     gem.homepage = "http://github.com/andrewvc/dripdrop"
     gem.authors = ["Andrew Cholakian"]
     gem.add_dependency('ffi-rzmq')
     gem.add_dependency('eventmachine')
+    gem.add_dependency('em-websocket')
+    gem.add_dependency('thin')
+    gem.add_dependency('zmqmachine')
     gem.add_dependency('bert')
     gem.add_dependency('json')
   end
