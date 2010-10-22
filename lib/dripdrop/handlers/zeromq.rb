@@ -190,13 +190,13 @@ class DripDrop
         body  = messages.last.copy_out_string
         message = decode_message(body)
         seq     = message.head['_dripdrop/x_seq_counter']
-        @recv_cbak.call(identities,seq,message)
+        @recv_cbak.call(message,identities,seq)
       else
         super(socket,messages)
       end
     end
 
-    def send_message(identities,seq,message)
+    def send_message(message,identities,seq)
       if message.is_a?(DripDrop::Message)
         message.head['_dripdrop/x_seq_counter'] = seq
         super(identities + [message.encoded])

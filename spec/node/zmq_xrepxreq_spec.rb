@@ -12,7 +12,7 @@ describe "zmq xreq/xrep" do
       rep = zmq_xrep(addr, :bind)
       req = zmq_xreq(addr, :connect)
       
-      rep.on_recv do |identities,seq,message|
+      rep.on_recv do |message,identities,seq|
         yield(identities,seq,message) if block
         responses << {:identities => identities, :seq => seq, :message => message}
       end
@@ -64,8 +64,8 @@ describe "zmq xreq/xrep" do
         req1 = zmq_xreq(addr, :connect)
         req2 = zmq_xreq(addr, :connect)
         
-        rep.on_recv do |identities,seq,message|
-          rep.send_message(identities,seq,message)
+        rep.on_recv do |message,identities,seq|
+          rep.send_message(message,identities,seq)
         end
          
         r1_msg = DripDrop::Message.new("REQ1 Message")
