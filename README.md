@@ -55,4 +55,9 @@ RDocs can be found [here](http://www.rdoc.info/github/andrewvc/dripdrop/master/f
 
 DripDrop encapsulates both zmqmachine, and eventmachine. It provides some sane default messaging choices, using [BERT](http://github.com/blog/531-introducing-bert-and-bert-rpc) (A binary, JSON, like serialization format) and JSON for serialization. While zmqmachine and eventmachine APIs, some convoluted ones, the goal here is to smooth over the bumps, and make them play together nicely.
 
+#Contributors
+
+Andrew Cholakian: [andrewvc](http://github.com/andrewvc)
+John W Higgins: [wishdev](http://github.com/wishdev)
+
 Copyright (c) 2010 Andrew Cholakian. See LICENSE for details.
