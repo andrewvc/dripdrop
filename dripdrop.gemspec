@@ -5,12 +5,12 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dripdrop}
-  s.version = "0.3.0"
+  s.version = "0.3.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrew Cholakian"]
   s.date = %q{2010-10-21}
-  s.description = %q{0MQ App stats}
+  s.description = %q{Evented framework for ZeroMQ and EventMachine Apps. }
   s.email = %q{andrew@andrewvc.com}
   s.extra_rdoc_files = [
     "LICENSE",
@@ -54,7 +54,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
-  s.summary = %q{0MQ App Stats}
+  s.summary = %q{Evented framework for ZeroMQ and EventMachine Apps.}
   s.test_files = [
     "spec/spec_helper.rb",
      "spec/node/http_spec.rb",
@@ -71,17 +71,26 @@ Gem::Specification.new do |s|
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<ffi-rzmq>, [">= 0"])
       s.add_runtime_dependency(%q<eventmachine>, [">= 0"])
+      s.add_runtime_dependency(%q<em-websocket>, [">= 0"])
+      s.add_runtime_dependency(%q<thin>, [">= 0"])
+      s.add_runtime_dependency(%q<zmqmachine>, [">= 0"])
       s.add_runtime_dependency(%q<bert>, [">= 0"])
       s.add_runtime_dependency(%q<json>, [">= 0"])
     else
       s.add_dependency(%q<ffi-rzmq>, [">= 0"])
       s.add_dependency(%q<eventmachine>, [">= 0"])
+      s.add_dependency(%q<em-websocket>, [">= 0"])
+      s.add_dependency(%q<thin>, [">= 0"])
+      s.add_dependency(%q<zmqmachine>, [">= 0"])
       s.add_dependency(%q<bert>, [">= 0"])
       s.add_dependency(%q<json>, [">= 0"])
     end
   else
     s.add_dependency(%q<ffi-rzmq>, [">= 0"])
     s.add_dependency(%q<eventmachine>, [">= 0"])
+    s.add_dependency(%q<em-websocket>, [">= 0"])
+    s.add_dependency(%q<thin>, [">= 0"])
+    s.add_dependency(%q<zmqmachine>, [">= 0"])
     s.add_dependency(%q<bert>, [">= 0"])
     s.add_dependency(%q<json>, [">= 0"])
   end
