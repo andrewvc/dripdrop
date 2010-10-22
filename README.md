@@ -43,7 +43,7 @@ Here's an example of the kind of thing DripDrop makes easy, from [examples/pubsu
       end
     end.start! #Start the reactor and block until complete
 
-Note that these aren't regular ZMQ sockets, and that the HTTP server isn't a regular server. They only speak and respond using DripDrop::Message formatted messages. For HTTP/WebSockets it's JSON that looks like {name: 'name', head: {}, body: anything}, for ZeroMQ it means BERT. There is a raw made that you can use for other message formats, but using DripDrop::Messages makes things easier, and for some socket types (like XREQ/XREP) the predefined format is very useful in matching requests to replies.
+Note that these aren't regular ZMQ sockets, and that the HTTP server isn't a regular server. They only speak and respond using DripDrop::Message formatted messages. For HTTP/WebSockets it's JSON that looks like {name: 'name', head: {}, body: anything}, for ZeroMQ it means BERT. There is a raw mode that you can use for other message formats, but using DripDrop::Messages makes things easier, and for some socket types (like XREQ/XREP) the predefined format is very useful in matching requests to replies.
 
 Want to see a longer example encapsulating both zmqmachine and eventmachine functionality? Check out [this file](http://github.com/andrewvc/dripdrop-webstats/blob/master/lib/dripdrop-webstats.rb).
 
