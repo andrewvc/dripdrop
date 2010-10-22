@@ -85,12 +85,12 @@ class DripDrop
     # to the original source of the message.
     #
     # Receiving with XREP sockets in DripDrop is different than other types of sockets, on_recv
-    # passes 3 arguments to its callback, +identities+, +seq+, and +message+. Identities is the 
+    # passes 3 arguments to its callback, +message+, +identities+, +seq+. Identities is the 
     # socket identity, seq is the sequence number of the message (all messages received at the socket
     # get a monotonically incrementing +seq+, and +message+ is the message itself.
     # 
     # To reply from an xrep handler, be sure to call send messages with the same +identities+ and +seq+
-    # arguments that +on_recv+ had. So, send_message takes +identities+, +seq+, and +message+.
+    # arguments that +on_recv+ had. So, send_message takes +message+, +identities+, and +seq+
     def zmq_xrep(address,socket_ctype,opts={})
       zmq_handler(DripDrop::ZMQXRepHandler,:xrep_socket,address,socket_ctype,opts={})
     end
@@ -116,8 +116,8 @@ class DripDrop
     end
     
     # Starts a new Thin HTTP server listening on address.
-    # Can have an +on_recv+ handler that gets passed a single +response+ arg.
-    #    http_server(addr) {|response,msg| response.send_message(msg)}
+    # Can have an +on_recv+ handler that gets passed +msg+ and +response+ args.
+    #    http_server(addr) {|msg,response| response.send_message(msg)}
     def http_server(address,opts={},&block)
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
