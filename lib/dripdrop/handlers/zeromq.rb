@@ -16,6 +16,7 @@ class DripDrop
       @zm_reactor   = zm_reactor
       @socket_ctype = socket_ctype # :bind or :connect
       @debug        = opts[:debug] # TODO: Start actually using this
+      @opts         = opts
     end
 
     def on_attach(socket)
@@ -102,7 +103,7 @@ class DripDrop
 
     def initialize(*args)
       super(*args)
-      @message_class = DripDrop.default_message_class
+      @message_class = @opts[:msg_class] || DripDrop.default_message_class
     end
 
     def decode_message(msg)
