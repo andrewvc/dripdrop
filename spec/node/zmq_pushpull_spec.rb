@@ -43,10 +43,9 @@ describe "zmq push/pull" do
       @pull_handlers = pp_info[:handlers][:pull]
     end
 
-    it "should receive all sent messages in order" do
-      @sent.zip(@responses).each do |sent,response|
-        sent.name.should == response.name
-      end
+    it "should receive all sent messages" do
+      resp_names = @responses.map(&:name).inject(Set.new) {|memo,rn| memo << rn}
+      @sent.map(&:name).each {|sn| resp_names.should include(sn)}
     end
     
     it "should receive messages on both pull sockets" do
