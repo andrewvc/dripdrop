@@ -69,8 +69,8 @@ class DripDrop
       #Rack middleware was not meant to be used this way...
       #Thin's error handling only rescues stuff w/o a backtrace
       begin
-        Thin::Logging.debug = true
-        Thin::Logging.trace = true
+        Thin::Logging.debug = false
+        Thin::Logging.trace = false
         Thin::Server.start(@address.host, @address.port) do
           map '/' do
             run HTTPApp.new(msg_format,&block)
