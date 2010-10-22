@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dripdrop}
-  s.version = "0.2.0"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrew Cholakian"]
-  s.date = %q{2010-10-10}
+  s.date = %q{2010-10-21}
   s.description = %q{0MQ App stats}
   s.email = %q{andrew@andrewvc.com}
   s.extra_rdoc_files = [
@@ -29,6 +29,7 @@ Gem::Specification.new do |s|
      "example/http.rb",
      "example/pubsub.rb",
      "example/pushpull.rb",
+     "example/subclass.rb",
      "example/xreq_xrep.rb",
      "js/dripdrop.html",
      "js/dripdrop.js",
@@ -42,8 +43,10 @@ Gem::Specification.new do |s|
      "lib/dripdrop/handlers/zeromq.rb",
      "lib/dripdrop/message.rb",
      "lib/dripdrop/node.rb",
-     "spec/node/zmq_pushpull.rb",
-     "spec/node/zmq_xrepxreq.rb",
+     "spec/message_spec.rb",
+     "spec/node/http_spec.rb",
+     "spec/node/zmq_pushpull_spec.rb",
+     "spec/node/zmq_xrepxreq_spec.rb",
      "spec/node_spec.rb",
      "spec/spec_helper.rb"
   ]
@@ -53,10 +56,12 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{0MQ App Stats}
   s.test_files = [
-    "spec/node/zmq_pushpull.rb",
-     "spec/node/zmq_xrepxreq.rb",
-     "spec/node_spec.rb",
-     "spec/spec_helper.rb"
+    "spec/spec_helper.rb",
+     "spec/node/http_spec.rb",
+     "spec/node/zmq_xrepxreq_spec.rb",
+     "spec/node/zmq_pushpull_spec.rb",
+     "spec/message_spec.rb",
+     "spec/node_spec.rb"
   ]
 
   if s.respond_to? :specification_version then
