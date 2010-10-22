@@ -29,7 +29,7 @@ Here's an example of the kind of thing DripDrop makes easy, from [examples/pubsu
         pub.send_message(:name => 'test', :body => 'Test Payload')
       end
       
-      http_server(addr).on_recv do |response,msg|
+      http_server(addr).on_recv do |msg,response|
         i += 1
         response.send_message(msg)
       end
