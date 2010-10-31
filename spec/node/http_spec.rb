@@ -30,7 +30,7 @@ describe "http" do
     end
     
     @ddn.start
-    sleep 0.1
+    sleep 0.4
     @ddn.stop
     
     {:responses => responses, :handlers => {:server => [server] }}
