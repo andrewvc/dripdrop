@@ -61,8 +61,11 @@ class DripDrop
       EM.stop
     end
 
-    # Defines a new route. Routes cleaner ways to define handlers
-    # For example, you can define a new +zmq_pub+ route as follows:
+    # Defines a new route. Routes are the recommended way to instantiate
+    # handlers. For example:
+    #
+    #    route :stats_pub, :zmq_publish, 'tcp://127.0.0.1:2200', :bind
+    #    route :stats_sub, :zmq_subscribe, stats_pub.address, :connect
     def route(name,handler_type,*handler_args)
       handler = self.send(handler_type, *handler_args)
       @routing[name] = handler
