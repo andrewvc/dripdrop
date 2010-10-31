@@ -129,6 +129,11 @@ class DripDrop
     include ZMQReadableHandler
 
     attr_accessor :topic_filter
+    
+    def initialize(*args)
+      super(*args)
+      self.topic_filter = @opts[:topic_filter]
+    end
 
     def on_attach(socket)
       super(socket)

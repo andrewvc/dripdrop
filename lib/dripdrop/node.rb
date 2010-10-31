@@ -75,24 +75,26 @@ class DripDrop
       handler
     end
 
-    # Creates a ZMQ::SUB type socket. Can only receive messages via +on_recv+
+    # Creates a ZMQ::SUB type socket. Can only receive messages via +on_recv+.
+    # zmq_subscribe sockets have a +topic_filter+ option, which restricts which
+    # messages they can receive. It takes a regexp as an option.
     def zmq_subscribe(address,socket_ctype,opts={},&block)
-      zmq_handler(DripDrop::ZMQSubHandler,:sub_socket,address,socket_ctype,opts={})
+      zmq_handler(DripDrop::ZMQSubHandler,:sub_socket,address,socket_ctype,opts)
     end
 
     # Creates a ZMQ::PUB type socket, can only send messages via +send_message+
     def zmq_publish(address,socket_ctype,opts={})
-      zmq_handler(DripDrop::ZMQPubHandler,:pub_socket,address,socket_ctype,opts={})
+      zmq_handler(DripDrop::ZMQPubHandler,:pub_socket,address,socket_ctype,opts)
     end
 
     # Creates a ZMQ::PULL type socket. Can only receive messages via +on_recv+
     def zmq_pull(address,socket_ctype,opts={},&block)
-      zmq_handler(DripDrop::ZMQPullHandler,:pull_socket,address,socket_ctype,opts={})
+      zmq_handler(DripDrop::ZMQPullHandler,:pull_socket,address,socket_ctype,opts)
     end
 
     # Creates a ZMQ::PUSH type socket, can only send messages via +send_message+
     def zmq_push(address,socket_ctype,opts={})
-      zmq_handler(DripDrop::ZMQPushHandler,:push_socket,address,socket_ctype,opts={})
+      zmq_handler(DripDrop::ZMQPushHandler,:push_socket,address,socket_ctype,opts)
     end
 
     # Creates a ZMQ::XREP type socket, both sends and receivesc XREP sockets are extremely
@@ -107,12 +109,12 @@ class DripDrop
     # To reply from an xrep handler, be sure to call send messages with the same +identities+ and +seq+
     # arguments that +on_recv+ had. So, send_message takes +message+, +identities+, and +seq+
     def zmq_xrep(address,socket_ctype,opts={})
-      zmq_handler(DripDrop::ZMQXRepHandler,:xrep_socket,address,socket_ctype,opts={})
+      zmq_handler(DripDrop::ZMQXRepHandler,:xrep_socket,address,socket_ctype,opts)
     end
  
     # See the documentation for +zmq_xrep+ for more info
     def zmq_xreq(address,socket_ctype,opts={})
-      zmq_handler(DripDrop::ZMQXReqHandler,:xreq_socket,address,socket_ctype,opts={})
+      zmq_handler(DripDrop::ZMQXReqHandler,:xreq_socket,address,socket_ctype,opts)
     end
 
     # Binds an EM websocket connection to +address+. takes blocks for
