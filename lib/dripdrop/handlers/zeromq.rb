@@ -8,11 +8,12 @@ class DripDrop
     DripDrop.default_message_class = DripDrop::Message
   end
 
-  class ZMQBaseHandler
+  class ZMQBaseHandler < BaseHandler
     attr_reader :address, :socket_ctype, :socket
 
-    def initialize(address,zm_reactor,socket_ctype,opts={})
-      @address      = address
+    def initialize(zaddress,zm_reactor,socket_ctype,opts={})
+      @zaddress     = zaddress
+      @address      = @zaddress.to_s
       @zm_reactor   = zm_reactor
       @socket_ctype = socket_ctype # :bind or :connect
       @debug        = opts[:debug] # TODO: Start actually using this
@@ -22,9 +23,9 @@ class DripDrop
     def on_attach(socket)
       @socket = socket
       if    @socket_ctype == :bind
-        socket.bind(@address)
+        socket.bind(@zaddress)
       elsif @socket_ctype == :connect
-        socket.connect(@address)
+        socket.connect(@zaddress)
       else
         raise "Unsupported socket ctype '#{@socket_ctype}'. Expected :bind or :connect"
       end
@@ -127,7 +128,6 @@ class DripDrop
   class ZMQSubHandler < ZMQBaseHandler
     include ZMQReadableHandler
 
-    attr_reader :address, :socket_ctype
     attr_accessor :topic_filter
 
     def on_attach(socket)

@@ -5,23 +5,24 @@ require 'eventmachine'
 require 'uri'
 
 require 'dripdrop/message'
+require 'dripdrop/handlers/base'
 require 'dripdrop/handlers/zeromq'
 require 'dripdrop/handlers/websockets'
 require 'dripdrop/handlers/http'
 
 class DripDrop
   class Node
-    attr_reader   :zm_reactor
+    attr_reader   :zm_reactor, :routing
     attr_accessor :debug
     
     def initialize(opts={},&block)
-      @handlers = {}
-      @debug    = opts[:debug]
-      @recipients_for = {}
+      @zm_reactor = nil # The instance of the zmq_machine reactor
+      @block      = block
+      @thread     = nil # Thread containing the reactors
+      @routing    = {}  # Routing table
+      @debug      = opts[:debug]
+      @recipients_for       = {}
       @handler_default_opts = {:debug => @debug}
-      @zm_reactor = nil
-      @block = block
-      @thread = nil
     end
 
     # Starts the reactors and runs the block passed to initialize.
@@ -60,12 +61,26 @@ class DripDrop
       EM.stop
     end
 
+    # Defines a new route. Routes cleaner ways to define handlers
+    # For example, you can define a new +zmq_pub+ route as follows:
+    def route(name,handler_type,*handler_args)
+      handler = self.send(handler_type, *handler_args)
+      @routing[name] = handler
+      
+      # Define the route name as a singleton method
+      (class << self; self; end).class_eval do
+        define_method(name) { handler }
+      end
+      
+      handler
+    end
+
     # Creates a ZMQ::SUB type socket. Can only receive messages via +on_recv+
     def zmq_subscribe(address,socket_ctype,opts={},&block)
       zmq_handler(DripDrop::ZMQSubHandler,:sub_socket,address,socket_ctype,opts={})
     end
 
-    # Creates a ZMQ::PUB type socket, can only send messages via +send_message+
+    # Creates a ZMQ::PUB type socket, can puts 'hi'only send messages via +send_message+
     def zmq_publish(address,socket_ctype,opts={})
       zmq_handler(DripDrop::ZMQPubHandler,:pub_socket,address,socket_ctype,opts={})
     end

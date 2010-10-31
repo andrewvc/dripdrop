@@ -57,7 +57,7 @@ class DripDrop
     end
   end
   
-  class HTTPServerHandler
+  class HTTPServerHandler < BaseHandler
     attr_reader :address, :opts
     
     def initialize(address,opts={})
@@ -82,7 +82,7 @@ class DripDrop
     end
   end
 
-  class HTTPClientHandler
+  class HTTPClientHandler < BaseHandler
     attr_reader :address, :opts
     
     def initialize(address, opts={})

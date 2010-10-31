@@ -2,7 +2,7 @@ require 'em-websocket'
 require 'json'
 
 class DripDrop
-  class WebSocketHandler
+  class WebSocketHandler < BaseHandler
     attr_reader :ws, :address, :thread
    
     def initialize(address,opts={})
