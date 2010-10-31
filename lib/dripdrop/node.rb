@@ -80,7 +80,7 @@ class DripDrop
       zmq_handler(DripDrop::ZMQSubHandler,:sub_socket,address,socket_ctype,opts={})
     end
 
-    # Creates a ZMQ::PUB type socket, can puts 'hi'only send messages via +send_message+
+    # Creates a ZMQ::PUB type socket, can only send messages via +send_message+
     def zmq_publish(address,socket_ctype,opts={})
       zmq_handler(DripDrop::ZMQPubHandler,:pub_socket,address,socket_ctype,opts={})
     end
