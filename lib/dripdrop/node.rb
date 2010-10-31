@@ -67,17 +67,40 @@ class DripDrop
     #    route :stats_pub, :zmq_publish, 'tcp://127.0.0.1:2200', :bind
     #    route :stats_sub, :zmq_subscribe, stats_pub.address, :connect
     def route(name,handler_type,*handler_args)
+      # If we're in a route_for block, prepend appropriately
+      full_name = @route_prepend ? "#{@route_prepend}_#{name}".to_sym : name
+      
       handler = self.send(handler_type, *handler_args)
-      @routing[name] = handler
+      @routing[full_name] = handler
       
       # Define the route name as a singleton method
       (class << self; self; end).class_eval do
-        define_method(name) { handler }
+        define_method(full_name) { handler }
       end
       
       handler
     end
 
+    # Defines a group of +route+s, to be used as the interface for a +nodelet+
+    # later on.
+    # 
+    # All routes defined with the +route_for+ block will be prepended with the
+    # +nodelet_name+ and an underscore. So, the following routes:
+    # 
+    #    routes_for :forwarder do
+    #      route :input,  :zmq_subscribe, 'tcp://127.0.0.1:2200', :bind
+    #      route :output, :zmq_publish,   f.in.address, :connect
+    #    end
+    # 
+    # Will yield the routes: +forwarder_input+ and +forwarder_output+ globally.
+    # Within the block scope of the +forwarder+ nodelet however, the routes are additionally
+    # available with their own short names. See the +nodelet+ method for details.
+    def routes_for(nodelet_name,&block)
+      @route_prepend = nodelet_name #This feel ugly. Blech.
+      block.call
+      @route_prepend = nil
+    end
+    
     # Creates a ZMQ::SUB type socket. Can only receive messages via +on_recv+.
     # zmq_subscribe sockets have a +topic_filter+ option, which restricts which
     # messages they can receive. It takes a regexp as an option.

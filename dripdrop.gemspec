@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrew Cholakian"]
-  s.date = %q{2010-10-21}
+  s.date = %q{2010-10-30}
   s.description = %q{Evented framework for ZeroMQ and EventMachine Apps. }
   s.email = %q{andrew@andrewvc.com}
   s.extra_rdoc_files = [
@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
      "doc_img/topology.png",
      "dripdrop.gemspec",
      "example/agent_test.rb",
+     "example/combined.rb",
      "example/http.rb",
      "example/pubsub.rb",
      "example/pushpull.rb",
@@ -33,11 +34,11 @@ Gem::Specification.new do |s|
      "example/xreq_xrep.rb",
      "js/dripdrop.html",
      "js/dripdrop.js",
-     "js/jack.js",
      "js/qunit.css",
      "js/qunit.js",
      "lib/dripdrop.rb",
      "lib/dripdrop/agent.rb",
+     "lib/dripdrop/handlers/base.rb",
      "lib/dripdrop/handlers/http.rb",
      "lib/dripdrop/handlers/websockets.rb",
      "lib/dripdrop/handlers/zeromq.rb",
@@ -45,6 +46,7 @@ Gem::Specification.new do |s|
      "lib/dripdrop/node.rb",
      "spec/message_spec.rb",
      "spec/node/http_spec.rb",
+     "spec/node/routing_spec.rb",
      "spec/node/zmq_pushpull_spec.rb",
      "spec/node/zmq_xrepxreq_spec.rb",
      "spec/node_spec.rb",
@@ -58,6 +60,7 @@ Gem::Specification.new do |s|
   s.test_files = [
     "spec/spec_helper.rb",
      "spec/node/http_spec.rb",
+     "spec/node/routing_spec.rb",
      "spec/node/zmq_xrepxreq_spec.rb",
      "spec/node/zmq_pushpull_spec.rb",
      "spec/message_spec.rb",
