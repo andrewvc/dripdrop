@@ -2,7 +2,7 @@ require 'thin'
 require 'json'
 
 class DripDrop
-  class HTTPDeferrableBody
+  class HTTPDeferrableBody < BaseHandler
     include EventMachine::Deferrable
     
     def call(body)
@@ -15,13 +15,14 @@ class DripDrop
       @body_callback = blk
     end
     
-    def send_message(msg)
+    def send_message(raw_msg)
+      msg = dd_messagify(raw_msg)
       if msg.class == DripDrop::Message
         json = msg.encode_json
         self.call([json])
         self.succeed
       else
-        raise "Message Type not supported"
+        raise "Message Type '#{msg.class}' not supported"
       end
     end
   end
@@ -45,8 +46,7 @@ class DripDrop
           case @msg_format
           when :dripdrop_json
             msg = DripDrop::Message.decode_json(env['rack.input'].read)
-            msg.head[:http_env] = env
-            @recv_cbak.call(msg,body)
+            @recv_cbak.call(msg,body,env)
           else
             raise "Unsupported message type #{@msg_format}"
           end
@@ -60,8 +60,9 @@ class DripDrop
   class HTTPServerHandler < BaseHandler
     attr_reader :address, :opts
     
-    def initialize(address,opts={})
-      @address = address
+    def initialize(uri,opts={})
+      @uri     = uri
+      @address = uri.to_s
       @opts    = opts
     end
     
@@ -71,7 +72,7 @@ class DripDrop
       begin
         Thin::Logging.debug = false
         Thin::Logging.trace = false
-        Thin::Server.start(@address.host, @address.port) do
+        Thin::Server.start(@uri.host, @uri.port) do
           map '/' do
             run HTTPApp.new(msg_format,&block)
           end
@@ -85,15 +86,16 @@ class DripDrop
   class HTTPClientHandler < BaseHandler
     attr_reader :address, :opts
     
-    def initialize(address, opts={})
-      @address = address
+    def initialize(uri, opts={})
+      @uri     = uri
+      @address = @uri.to_s
       @opts    = opts
     end
     
     def send_message(msg,&block)
       if msg.class == DripDrop::Message
         req = EM::Protocols::HttpClient.request(
-          :host => address.host, :port => address.port,
+          :host => @uri.host, :port => @uri.port,
           :request => '/', :verb => 'POST',
           :contenttype => 'application/json',
           :content => msg.encode_json

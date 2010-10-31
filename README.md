@@ -4,41 +4,38 @@
 
 DripDrop is ZeroMQ(using zmqmachine) + Event Machine simplified for the general use case + serialization helpers.
 
-Here's an example of the kind of thing DripDrop makes easy, from [examples/pubsub.rb](http://github.com/andrewvc/dripdrop/blob/master/example/pubsub.rb)
- 
-    require 'dripdrop/node'
-    Thread.abort_on_exception = true
+Here's an example of the kind of thing DripDrop makes easy, from [example/combined.rb](http://github.com/andrewvc/dripdrop/blob/master/example/combined.rb)
+  
+    require 'dripdrop'
+    Thread.abort_on_exception = true #Always a good idea in multithreaded apps.
 
     #Define our handlers
     DripDrop::Node.new do
-      z_addr = 'tcp://127.0.0.1:2200'
+    #Create a publisher
+      route :stats_pub,      :zmq_publish,   'tcp://127.0.0.1:2200', :bind
+      route :stats_sub1,     :zmq_subscribe, stats_pub.address, :connect
+      route :stats_sub2,     :zmq_subscribe, stats_pub.address, :connect
+      route :http_collector, :http_server,   'http://127.0.0.1:8080'
+      route :http_agent,     :http_client,   http_collector.address
         
-      #Create a publisher
-      pub = zmq_publish(z_addr,:bind)
-
-      #Create two subscribers
-      zmq_subscribe(z_addr,:connect).on_recv do |message|
-        puts "Receiver 1 #{message.inspect}"
+      stats_sub1.on_recv do |message|
+        puts "Receiver 1: #{message.body}"
       end
-      zmq_subscribe(z_addr, :connect).on_recv do |message|
-        puts "Receiver 2 #{message.inspect}"
+      stats_sub2.on_recv do |message|
+        puts "Receiver 2: #{message.body}"
       end
       
-      zm_reactor.periodical_timer(5) do
-        #Sending a hash as a message implicitly transforms it into a DripDrop::Message
-        pub.send_message(:name => 'test', :body => 'Test Payload')
-      end
-      
-      http_server(addr).on_recv do |msg,response|
+      i = 0
+      http_collector.on_recv do |message,response|
         i += 1
-        response.send_message(msg)
+        stats_pub.send_message(message)
+        response.send_message(:name => 'ack', :body => {:seq => i})
       end
 
       EM::PeriodicTimer.new(1) do
-        client = http_client(addr)
         msg = DripDrop::Message.new('http/status', :body => "Success #{i}")
-        client.send_message(msg) do |resp_msg|
-          puts resp_msg.inspect
+        http_agent.send_message(msg) do |resp_msg|
+          puts "RESP: #{resp_msg.body['seq']}"
         end
       end
     end.start! #Start the reactor and block until complete
