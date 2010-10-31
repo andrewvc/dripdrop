@@ -1,9 +1,9 @@
 require 'dripdrop'
 Thread.abort_on_exception = true #Always a good idea in multithreaded apps.
 
-#Define our handlers
+# Encapsulates our EM and ZMQ reactors
 DripDrop::Node.new do
-#Create a publisher
+  # Define all our sockets
   route :stats_pub,      :zmq_publish,   'tcp://127.0.0.1:2200', :bind
   route :stats_sub1,     :zmq_subscribe, stats_pub.address, :connect
   route :stats_sub2,     :zmq_subscribe, stats_pub.address, :connect
