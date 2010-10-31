@@ -5,6 +5,7 @@ require 'eventmachine'
 require 'uri'
 
 require 'dripdrop/message'
+require 'dripdrop/node/nodelet'
 require 'dripdrop/handlers/base'
 require 'dripdrop/handlers/zeromq'
 require 'dripdrop/handlers/websockets'
@@ -66,6 +67,13 @@ class DripDrop
     #
     #    route :stats_pub, :zmq_publish, 'tcp://127.0.0.1:2200', :bind
     #    route :stats_sub, :zmq_subscribe, stats_pub.address, :connect
+    #
+    # Will make the following methods available within the reactor block:
+    #    stats_pub  # A regular zmq_publish handler
+    #    :stats_sub # A regular zmq_subscribe handler
+    #
+    # See the docs for +routes_for+ for more info in grouping routes for
+    # nodelets and maintaining sanity in larger apps
     def route(name,handler_type,*handler_args)
       # If we're in a route_for block, prepend appropriately
       full_name = @route_prepend ? "#{@route_prepend}_#{name}".to_sym : name
@@ -96,9 +104,29 @@ class DripDrop
     # Within the block scope of the +forwarder+ nodelet however, the routes are additionally
     # available with their own short names. See the +nodelet+ method for details.
     def routes_for(nodelet_name,&block)
-      @route_prepend = nodelet_name #This feel ugly. Blech.
+      @route_prepend = nodelet_name #This feels ugly. Blech.
       block.call
       @route_prepend = nil
+    end
+
+    # Nodelets are a way of segmenting a DripDrop::Node. This can be used
+    # for both organization and deployment. One might want the production
+    # deployment of an app to be broken across multiple servers or processes
+    # for instance. Additionally, by combining nodelets with +routes_for+
+    # managing routes becomes a little easier.
+    #
+    # Nodelets can be used thusly:
+    #    routes_for :heartbeat do
+    #      route :ticker, :zmq_publish, 'tcp://127.0.0.1', :bind
+    #    end
+    #
+    #    nodelet :heartbeat do
+    #      zm_reactor.periodical_timer(500) do
+    #      ticker.send_message(:name => 'tick')
+    #    end
+    def nodelet(name,&block)
+      nlet_obj = Nodelet.new(name,routing)
+      block.call(nlet_obj)
     end
     
     # Creates a ZMQ::SUB type socket. Can only receive messages via +on_recv+.
