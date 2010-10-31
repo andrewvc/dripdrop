@@ -2,70 +2,73 @@ require 'spec_helper'
 
 describe "zmq xreq/xrep" do
   def xr_tranceive_messages(to_send,&block)
-    responses = []
+    recvd = []
     req = nil
     rep = nil
     
-    @ddn = DripDrop::Node.new do
+    @node = run_reactor do
       addr = rand_addr
       
       rep = zmq_xrep(addr, :bind)
       req = zmq_xreq(addr, :connect)
       
-      rep.on_recv do |message,identities,seq|
-        yield(identities,seq,message) if block
-        responses << {:identities => identities, :seq => seq, :message => message}
+      rep.on_recv do |message,response|
+        recvd << {:message => message, :response => response}
       end
        
       to_send.each {|message| req.send_message(message)}
     end
     
-    @ddn.start
-    sleep 0.1
-    @ddn.stop rescue nil
-    
-    {:responses => responses, :handlers => {:req => req, :rep => rep}}
+    {:recvd => recvd, :handlers => {:req => req, :rep => rep}}
   end
   describe "basic sending and receiving" do
     before(:all) do
       @sent = []
       10.times {|i| @sent << DripDrop::Message.new("test-#{i}")}
       xr_info = xr_tranceive_messages(@sent)
-      @responses = xr_info[:responses]
+      @recvd  = xr_info[:recvd]
       @req_handler  = xr_info[:handlers][:req]
       @rep_handler  = xr_info[:handlers][:rep]
     end
 
     it "should receive all sent messages in order" do
-      @sent.zip(@responses).each do |sent,response|
-        sent.name.should == response[:message].name
+      @sent.zip(@recvd).each do |sent,recvd|
+        sent.name.should == recvd[:message].name
+      end
+    end
+    
+    it "should pass a ZMQXrepHandler::Response object to the response callback" do
+      @recvd.each do |recvd_item|
+        recvd_item[:response].should be_instance_of(DripDrop::ZMQXRepHandler::Response)
       end
     end
 
     it "should have a monotonically incrementing seq for responses" do
       last_seq = 0
-      @responses.each do |resp|
-        resp[:seq].should == last_seq + 1
-        last_seq = resp[:seq]
+      @recvd.each do |recvd_item|
+        recvd_item[:response].seq.should == last_seq + 1
+        last_seq = recvd_item[:response].seq
       end
     end
     
     it "should include the identity of the sending socket" do
-      @responses.each {|resp| resp[:identities].should_not be_nil}
+      @recvd.each do |recvd_item|
+        recvd_item[:response].identities.should_not be_nil
+      end
     end
     
     it "should send responses back to the proper xreq sender" do
       received_count = 0
       
-      ddn = DripDrop::Node.new do
+      run_reactor(0.2) do
         addr = rand_addr
         
         rep  = zmq_xrep(addr, :bind)
         req1 = zmq_xreq(addr, :connect)
         req2 = zmq_xreq(addr, :connect)
         
-        rep.on_recv do |message,identities,seq|
-          rep.send_message(message,identities,seq)
+        rep.on_recv do |message,response|
+          response.send_message(message)
         end
          
         r1_msg = DripDrop::Message.new("REQ1 Message")
@@ -82,10 +85,7 @@ describe "zmq xreq/xrep" do
         end
         end
       end
-      ddn.start 
-      sleep 0.2
-      ddn.stop rescue nil #This should work...
-      
+       
       received_count.should == 20
     end
   end

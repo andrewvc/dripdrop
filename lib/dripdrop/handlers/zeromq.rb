@@ -178,10 +178,11 @@ class DripDrop
     def on_readable(socket,messages)
       if @msg_format == :dripdrop
         identities = messages[0..-2].map {|m| m.copy_out_string}
-        body  = messages.last.copy_out_string
-        message = decode_message(body)
-        seq     = message.head['_dripdrop/x_seq_counter']
-        @recv_cbak.call(message,identities,seq)
+        body       = messages.last.copy_out_string
+        message    = decode_message(body)
+        seq        = message.head['_dripdrop/x_seq_counter']
+        response   = ZMQXRepHandler::Response.new(self, identities,seq)
+        @recv_cbak.call(message,response)
       else
         super(socket,messages)
       end
@@ -194,6 +195,20 @@ class DripDrop
       else
         super(message)
       end
+    end
+  end
+  
+  class ZMQXRepHandler::Response
+    attr_accessor :xrep, :seq, :identities
+    
+    def initialize(xrep,identities,seq)
+      @xrep = xrep
+      @seq  = seq
+      @identities = identities
+    end
+    
+    def send_message(message)
+      @xrep.send_message(message,identities,seq)
     end
   end
 

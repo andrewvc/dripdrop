@@ -156,12 +156,13 @@ class DripDrop
     # to the original source of the message.
     #
     # Receiving with XREP sockets in DripDrop is different than other types of sockets, on_recv
-    # passes 3 arguments to its callback, +message+, +identities+, +seq+. Identities is the 
-    # socket identity, seq is the sequence number of the message (all messages received at the socket
-    # get a monotonically incrementing +seq+, and +message+ is the message itself.
-    # 
-    # To reply from an xrep handler, be sure to call send messages with the same +identities+ and +seq+
-    # arguments that +on_recv+ had. So, send_message takes +message+, +identities+, and +seq+
+    # passes 2 arguments to its callback, +message+, and +response+. A minimal example is shown below:
+    #
+    #    
+    #    zmq_xrep(z_addr, :bind).on_recv do |message,response|
+    #      response.send_message(message)
+    #    end
+    #
     def zmq_xrep(address,socket_ctype,opts={})
       zmq_handler(DripDrop::ZMQXRepHandler,:xrep_socket,address,socket_ctype,opts)
     end
