@@ -14,8 +14,9 @@ class DripDrop
           ws_conn = EventMachine::WebSocket::Connection
           EventMachine::start_server(host,port,ws_conn,:debug => @debug) do |ws|
             @ws = ws
+            dd_conn = Connection.new(@ws)
             @ws.onopen do
-              @onopen_handler.call(ws) if @onopen_handler
+              @onopen_handler.call(dd_conn) if @onopen_handler
             end
             @ws.onmessage do |message|
               unless @raw
@@ -26,13 +27,13 @@ class DripDrop
                   puts "Could not parse message: #{e.message}"
                 end
               end
-              @onmessage_handler.call(message,ws) if @onmessage_handler
+              @onmessage_handler.call(message,dd_conn) if @onmessage_handler
             end
             @ws.onclose do
-              @onclose_handler.call(@ws) if @onclose_handler
+              @onclose_handler.call(dd_conn) if @onclose_handler
             end
             @ws.onerror do
-              @onerror_handler.call(@ws) if @onerror_handler
+              @onerror_handler.call(dd_conn) if @onerror_handler
             end
           end
       end
@@ -65,4 +66,18 @@ class DripDrop
       self
     end
   end
+  
+  class WebSocketHandler::Connection < BaseHandler
+    attr_reader :ws, :signature
+    
+    def initialize(ws)
+      @ws = ws     
+      @signature = @ws.signature
+    end
+
+    def send_message(message)
+      @ws.send(dd_messagify(message).to_hash.to_json)
+    end
+  end
+   
 end
