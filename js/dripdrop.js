@@ -22,6 +22,7 @@ function DripDrop() {
     
     this.onOpen = function(callback) {
       this.socket.onopen = callback;
+      return this;
     };
     
     this.onRecv = function(callback) {
@@ -30,20 +31,23 @@ function DripDrop() {
         var message = new DD.Message(json.name, {head: json.head, body: json.body});
         
         callback(message);
-        return this;
       }
+      return this;
     };
     
     this.onClose = function(callback) {
       this.socket.onclose = callback;
+      return this;
     };
 
     this.onError = function(callback) {
       this.socket.onerror = callback;
+      return this;
     };
 
     this.sendMessage = function(message) {
       this.socket.send(message.jsonEncoded());
+      return this;
     };
   };
 
