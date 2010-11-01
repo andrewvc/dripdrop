@@ -14,7 +14,7 @@ DripDrop::Node.new do
   routes_for :counter do
     route :input,      :zmq_subscribe, agg_output.address, :connect
     route :query,      :zmq_xrep,      'tcp://127.0.0.1:2203', :bind
-    route :query_http, :http_server,   'tcp://127.0.0.1:8081'
+    route :query_http, :http_server,   'tcp://0.0.0.0:8081'
   end
 
   routes_for :tracer do
@@ -40,6 +40,11 @@ DripDrop::Node.new do
     agg.input.on_recv do |message|
       agg.output.send_message(message)
     end
+    
+    agg.input_http.on_recv do |message,response,env|
+      response.send_message(:name => 'ack')
+      agg.output.send_message(message)
+    end
   end 
 
   nodelet :counter do |cntr|
@@ -55,18 +60,19 @@ DripDrop::Node.new do
     end
 
     cntr.query_http.on_recv do |message,response|
-      cntr.response.send_message(:name => 'stats', :body => @stats)
+      response.send_message(:name => 'stats', :body => @stats)
     end
   end
 
   nodelet :tracer do |tracer|
-    tracer_memo = {'127.0.0.1' => ['192.168.2.1', 'blah.comcast.net', 'blah.level3.net'],
-                   '127.0.0.2' => ['192.168.5.1', 'dah.comcast.net', 'blah.level3.net', 'mark.blah.com'],
-                   '127.0.0.3' => ['192.168.3.1', 'dax.comcast.net', 'blah.leael3.net', 'mark.blah.com']}
-     
+    tracer_memo = {}
+    
     ip_regexp = /\A(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\Z/
     tracer.input.on_recv do |message|
-      ip = message.body[:ip]
+      puts "TRACE #{message.body.inspect}"
+       
+      ip = message.body['ip']
+      puts "IP #{message.inspect}"
       if ip =~ ip_regexp
         memoized_res = tracer_memo[ip]
         if memoized_res
@@ -102,8 +108,6 @@ DripDrop::Node.new do
   nodelet :heartbeat do |hbeat|
     zm_reactor.periodical_timer(1000) do
       hbeat.output.send_message(:name => 'heartbeat/tick', :body => Time.now.to_i)
-      ip = ['127.0.0.1','127.0.0.2','127.0.0.3'][rand(3)]
-      hbeat.output.send_message(:name => 'ip_trace_req',   :body => {:ip => ip})
     end
   end
 end.start! #Start the reactor and block until complete

@@ -9,7 +9,7 @@ function DripDrop() {
     this.head = (opts && opts.head !== undefined) ? opts.head : {empty:''};
 
     this.jsonEncoded = function() {
-      return $.JSON.encode({name: this.name, head: this.head, body: this.body});
+      return JSON.stringify({name: this.name, head: this.head, body: this.body});
     };   
   };
   
