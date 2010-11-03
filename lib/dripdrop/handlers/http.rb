@@ -34,7 +34,6 @@ class DripDrop
     def initialize(msg_format,&block)
       @msg_format = msg_format
       @recv_cbak  = block
-      super
     end
     
     def call(env)

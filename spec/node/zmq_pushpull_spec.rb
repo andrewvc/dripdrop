@@ -6,7 +6,7 @@ describe "zmq push/pull" do
     push = nil
     pull = nil
     
-    @ddn = DripDrop::Node.new do
+    @node = run_reactor do
       addr = rand_addr
       
       push = zmq_push(addr, :bind)
@@ -26,11 +26,7 @@ describe "zmq push/pull" do
        
       to_send.each {|message| push.send_message(message)}
     end
-    
-    @ddn.start
-    sleep 0.1
-    @ddn.stop rescue nil
-    
+     
     {:responses => responses, :handlers => { :push => push, :pull => [pull] }}
   end
   describe "basic sending and receiving" do

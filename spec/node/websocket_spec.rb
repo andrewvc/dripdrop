@@ -6,7 +6,7 @@ describe "websockets" do
     responses = []
     server = nil
     
-    @node = run_reactor(1.4) do
+    @node = run_reactor(2) do
       addr = rand_addr('ws')
       
       server = websocket(addr)
@@ -19,7 +19,7 @@ describe "websockets" do
       end
       
       EM.defer do
-      client = WebSocket.new(addr)
+        client = WebSocket.new(addr)
         to_send.each do |message|
           client.send(message.json_encoded)
         end

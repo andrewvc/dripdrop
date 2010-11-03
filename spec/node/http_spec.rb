@@ -6,7 +6,7 @@ describe "http" do
     client = nil
     server = nil
     
-    @ddn = DripDrop::Node.new do
+    @node = run_reactor(0.4) do
       addr = rand_addr
       
       zmq_subscribe(rand_addr, :bind) do |message|
@@ -29,11 +29,7 @@ describe "http" do
       end
     end
     
-    @ddn.start
-    sleep 0.4
-    @ddn.stop
-    
-    {:responses => responses, :handlers => {:server => [server] }}
+   {:responses => responses, :handlers => {:server => [server] }}
   end
   describe "basic sending and receiving" do
     before(:all) do
@@ -45,8 +41,6 @@ describe "http" do
                               :resp_message  => resp_message}
       end
       @responses     = http_info[:responses]
-      @push_handler  = http_info[:handlers][:push]
-      @pull_handlers = http_info[:handlers][:pull]
     end
 
     it "should receive all sent messages" do
