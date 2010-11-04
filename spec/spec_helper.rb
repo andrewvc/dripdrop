@@ -12,7 +12,8 @@ def run_reactor(time=0.1,opts={},&block)
   ddn = DripDrop::Node.new(opts,&block)
   ddn.start
   sleep time
-  ddn.stop rescue nil
+  ddn.stop
+  sleep 0.1
   ddn
 end
 

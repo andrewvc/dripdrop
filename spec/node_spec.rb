@@ -11,7 +11,6 @@ describe DripDrop::Node do
     end
     
     it "should start EventMachine" do
-      pending "This is not repeatedly reliable"
       EM.reactor_running?.should be_true
     end
     
