@@ -66,18 +66,17 @@ class DripDrop
     end
     
     def on_recv(msg_format=:dripdrop_json,&block)
-      #Rack middleware was not meant to be used this way...
       #Thin's error handling only rescues stuff w/o a backtrace
       begin
-        Thin::Logging.debug = false
-        Thin::Logging.trace = false
+        Thin::Logging.silent = true
+         
         Thin::Server.start(@uri.host, @uri.port) do
           map '/' do
             run HTTPApp.new(msg_format,&block)
           end
         end
       rescue Exception => e
-        puts e.message; puts e.backtrace.join("\n");
+        puts "Error in Thin server: #{e.message}\n#{e.backtrace.join("\n")}"
       end
     end
   end

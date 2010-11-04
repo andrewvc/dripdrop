@@ -2,7 +2,7 @@ $(function() {
   window.submitTraceForm = function () {
     var ip = $('#traceroute-ip').val();
     var msg = new DD.Message('ip_trace_req', {body: {ip: ip}});
-    $.post('http://127.0.0.1:8082', msg.jsonEncoded(), function (msg) {
+    $.post('http://stringer.andrewvc.com:8082', msg.jsonEncoded(), function (msg) {
       console.log(msg);
     }); 
     return false;
@@ -10,7 +10,7 @@ $(function() {
   
   var forceData = {};
   
-  var ws = new DD.WebSocket('ws://localhost:2202');
+  var ws = new DD.WebSocket('ws://stringer.andrewvc.com:2202');
   ws.onOpen(function () {
   }).onRecv(function (message) {
     if (message.name != 'ip_route') return;
