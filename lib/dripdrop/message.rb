@@ -97,6 +97,11 @@ class DripDrop
         puts "Could not parse msg '#{str}': #{e.message}"
         return nil
       end
+      
+      # Keep this consistent
+      json_hash['head'][:msg_class] = json_hash['head'][:msg_class]
+      json_hash['head'].delete('msg_class')
+       
       self.new(json_hash['name'], :head => json_hash['head'], :body => json_hash['body'])
     end
   end

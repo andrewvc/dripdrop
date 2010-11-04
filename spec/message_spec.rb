@@ -81,6 +81,11 @@ describe DripDrop::Message do
       it "should be added to the subclass message class hash if SubclassedMessage included" do
         DripDrop::AutoMessageClass.message_subclasses.should include('SpecMessageClass' => SpecMessageClass)
       end
+      it "should set the msg_class using a symbol, not a string when using JSON" do
+        msg = DripDrop::Message.decode_json(DripDrop::Message.new('test').json_encoded)
+        msg.head['msg_class'].should be_nil
+        msg.head[:msg_class].should  == 'DripDrop::Message'
+      end
       it "should throw an exception if we try to recreate a message of the wrong class" do
         msg = DripDrop::Message.new('test')
         lambda{SpecMessageClass.recreate_message(msg.to_hash)}.should raise_exception
