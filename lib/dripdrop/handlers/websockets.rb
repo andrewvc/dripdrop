@@ -7,35 +7,28 @@ class DripDrop
    
     def initialize(address,opts={})
       @raw    = false #Deal in strings or ZMQ::Message objects
-      @thread = Thread.new do
-          host, port = address.host, address.port.to_i
-          @debug = opts[:debug] || false
+      host, port = address.host, address.port.to_i
+      @debug = opts[:debug] || false
 
-          ws_conn = EventMachine::WebSocket::Connection
-          EventMachine::start_server(host,port,ws_conn,:debug => @debug) do |ws|
-            @ws = ws
-            dd_conn = Connection.new(@ws)
-            @ws.onopen do
-              @onopen_handler.call(dd_conn) if @onopen_handler
+      EventMachine::WebSocket.start(:host => host,:port => port,:debug => @debug) do |ws|
+        #A WebSocketHandler:Connection gets passed to all callbacks 
+        dd_conn = Connection.new(ws)
+          
+        ws.onopen { @onopen_handler.call(dd_conn) if @onopen_handler }
+        ws.onclose { @onclose_handler.call(dd_conn) if @onclose_handler }
+        ws.onerror { @onerror_handler.call(dd_conn) if @onerror_handler }
+        
+        ws.onmessage do |message|
+          if @onmessage_handler
+            begin
+              message = DripDrop::Message.decode_json(message) unless @raw
+            rescue StandardError => e
+              puts "Could not parse message: #{e.message}"
             end
-            @ws.onmessage do |message|
-              unless @raw
-                begin
-                  parsed = JSON.parse(message)
-                  message = DripDrop::Message.new(parsed['name'], :body => parsed['body'], :head => parsed['head'] || {})
-                rescue StandardError => e
-                  puts "Could not parse message: #{e.message}"
-                end
-              end
-              @onmessage_handler.call(message,dd_conn) if @onmessage_handler
-            end
-            @ws.onclose do
-              @onclose_handler.call(dd_conn) if @onclose_handler
-            end
-            @ws.onerror do
-              @onerror_handler.call(dd_conn) if @onerror_handler
-            end
+             
+            @onmessage_handler.call(message,dd_conn)
           end
+        end
       end
     end
     
@@ -68,10 +61,10 @@ class DripDrop
   end
   
   class WebSocketHandler::Connection < BaseHandler
-    attr_reader :ws, :signature
+    attr_reader :ws, :signature, :handler
     
     def initialize(ws)
-      @ws = ws     
+      @ws = ws
       @signature = @ws.signature
     end
 
@@ -79,5 +72,4 @@ class DripDrop
       @ws.send(dd_messagify(message).to_hash.to_json)
     end
   end
-   
 end
