@@ -90,19 +90,20 @@ class DripDrop
       @opts    = opts
     end
     
-    def send_message(msg,&block)
-      if msg.class == DripDrop::Message
+    def send_message(message,&block)
+      dd_message = dd_messagify(message)
+      if dd_message.class == DripDrop::Message
         req = EM::Protocols::HttpClient.request(
           :host => @uri.host, :port => @uri.port,
           :request => '/', :verb => 'POST',
           :contenttype => 'application/json',
-          :content => msg.encode_json
+          :content => dd_message.encode_json
         )
         req.callback do |response|
           block.call(DripDrop::Message.decode_json(response[:content]))
         end
       else
-        raise "Unsupported message type '#{msg.class}'"
+        raise "Unsupported message type '#{dd_message.class}'"
       end
     end
   end
