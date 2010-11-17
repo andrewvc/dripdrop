@@ -41,7 +41,7 @@ describe "zmq xreq/xrep" do
 
     it "should receive all sent messages in order" do
       @sent.zip(@recvd).each do |sent,recvd|
-        sent.name.should == recvd[:message].name
+        recvd[:message].name.should == sent.name
       end
     end
     
