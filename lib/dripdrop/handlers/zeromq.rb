@@ -198,7 +198,7 @@ class DripDrop
     end
   end
   
-  class ZMQXRepHandler::Response
+  class ZMQXRepHandler::Response < ZMQBaseHandler
     attr_accessor :xrep, :seq, :identities
     
     def initialize(xrep,identities,seq)
@@ -208,7 +208,8 @@ class DripDrop
     end
     
     def send_message(message)
-      @xrep.send_message(message,identities,seq)
+      dd_message = dd_messagify(message)
+      @xrep.send_message(dd_message,identities,seq)
     end
   end
 

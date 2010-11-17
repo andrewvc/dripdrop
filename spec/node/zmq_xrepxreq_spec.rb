@@ -2,7 +2,8 @@ require 'spec_helper'
 
 describe "zmq xreq/xrep" do
   def xr_tranceive_messages(to_send,&block)
-    recvd = []
+    recvd   = []
+    replied = []
     req = nil
     rep = nil
     
@@ -14,19 +15,26 @@ describe "zmq xreq/xrep" do
       
       rep.on_recv do |message,response|
         recvd << {:message => message, :response => response}
+        
+        response.send_message :name => 'response', :body => {:orig_name => message.name}
       end
        
-      to_send.each {|message| req.send_message(message)}
+      to_send.each do |message|
+        req.send_message(message) do |reply_message|
+          replied << reply_message
+        end
+      end
     end
     
-    {:recvd => recvd, :handlers => {:req => req, :rep => rep}}
+    {:recvd => recvd, :replied => replied, :handlers => {:req => req, :rep => rep}}
   end
   describe "basic sending and receiving" do
     before(:all) do
       @sent = []
       10.times {|i| @sent << DripDrop::Message.new("test-#{i}")}
       xr_info = xr_tranceive_messages(@sent)
-      @recvd  = xr_info[:recvd]
+      @recvd    = xr_info[:recvd]
+      @replied  = xr_info[:replied]
       @req_handler  = xr_info[:handlers][:req]
       @rep_handler  = xr_info[:handlers][:rep]
     end
@@ -34,6 +42,12 @@ describe "zmq xreq/xrep" do
     it "should receive all sent messages in order" do
       @sent.zip(@recvd).each do |sent,recvd|
         sent.name.should == recvd[:message].name
+      end
+    end
+    
+    it "should receive a reply message for each sent message" do
+      @sent.zip(@replied).each do |sent, replied|
+        replied.body[:orig_name].should == sent.name
       end
     end
     
