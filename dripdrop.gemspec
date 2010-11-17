@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dripdrop}
-  s.version = "0.4.0"
+  s.version = "0.4.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrew Cholakian"]
-  s.date = %q{2010-11-15}
+  s.date = %q{2010-11-16}
   s.description = %q{Evented framework for ZeroMQ and EventMachine Apps. }
   s.email = %q{andrew@andrewvc.com}
   s.extra_rdoc_files = [
