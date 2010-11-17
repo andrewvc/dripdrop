@@ -227,7 +227,7 @@ class DripDrop
         seq = message.head['_dripdrop/x_seq_counter']
         raise "Missing Seq Counter" unless seq
         promise = @promises.delete(seq)
-        promise.call(message)
+        promise.call(message) if promise
       end
     end
 
