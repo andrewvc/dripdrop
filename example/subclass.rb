@@ -10,14 +10,14 @@ Thread.abort_on_exception = true
 class TimestampedMessage < DripDrop::Message
   def self.create_message(*args)
     obj = super
-    obj.head[:timestamps] = []
-    obj.head[:timestamps] << Time.now
+    obj.head['timestamps'] = []
+    obj.head['timestamps'] << Time.now.to_s
     obj
   end
 
   def self.recreate_message(*args)
     obj = super
-    obj.head[:timestamps] << Time.now.to_s
+    obj.head['timestamps'] << Time.now.to_s
     obj
   end
 end
@@ -37,13 +37,13 @@ node = DripDrop::Node.new do
   pull2 = zmq_pull("tcp://127.0.0.1:2202", :connect)
 
   pull1.on_recv do |msg|
-    puts "Pull 1 #{msg.head}"
+    puts "Pull 1 #{msg.head.inspect}"
     sleep 1
     push2.send_message(msg)
   end
 
   pull2.on_recv do |msg|
-    puts "Pull 2 #{msg.head}"
+    puts "Pull 2 #{msg.head.inspect}"
   end
 
   push1.send_message(TimestampedMessage.create_message(:name => 'test', :body => "Hello there"))
