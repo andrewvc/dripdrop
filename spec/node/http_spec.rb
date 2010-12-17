@@ -36,11 +36,11 @@ describe "http" do
       @sent = []
       10.times {|i| @sent << DripDrop::Message.new("test-#{i}")}
       @client_responses = []
-      http_info = http_send_messages(@sent) do |sent_message,resp_message|
+      @http_info = http_send_messages(@sent) do |sent_message,resp_message|
         @client_responses << {:sent_message  => sent_message,
                               :resp_message  => resp_message}
       end
-      @responses     = http_info[:responses]
+      @responses     = @http_info[:responses]
     end
 
     it "should receive all sent messages" do

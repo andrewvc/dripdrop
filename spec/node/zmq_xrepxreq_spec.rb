@@ -16,7 +16,7 @@ describe "zmq xreq/xrep" do
       rep.on_recv do |message,response|
         recvd << {:message => message, :response => response}
         
-        response.send_message :name => 'response', :body => {:orig_name => message.name}
+        response.send_message :name => 'response', :body => {'orig_name' => message.name}
       end
        
       to_send.each do |message|
@@ -47,7 +47,7 @@ describe "zmq xreq/xrep" do
     
     it "should receive a reply message for each sent message" do
       @sent.zip(@replied).each do |sent, replied|
-        replied.body[:orig_name].should == sent.name
+        replied.body['orig_name'].should == sent.name
       end
     end
     
