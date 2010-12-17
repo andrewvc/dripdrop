@@ -8,7 +8,6 @@ else
   ZMQGEM = :ffirzmq
 end
 require 'uri'
-require 'bert'
 
 class DripDrop
   #The Agent class is a simple ZMQ Pub client. It uses DripDrop::Message messages

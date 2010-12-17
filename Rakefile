@@ -15,7 +15,7 @@ begin
     gem.add_dependency('em-websocket')
     gem.add_dependency('thin')
     gem.add_dependency('zmqmachine')
-    gem.add_dependency('bert')
+    gem.add_dependency('messagepack')
     gem.add_dependency('json')
   end
   Jeweler::GemcutterTasks.new

@@ -40,7 +40,7 @@ Here's an example of the kind of thing DripDrop makes easy, from [example/combin
       end
     end.start! #Start the reactor and block until complete
 
-Note that these aren't regular ZMQ sockets, and that the HTTP server isn't a regular server. They only speak and respond using DripDrop::Message formatted messages. For HTTP/WebSockets it's JSON that looks like {name: 'name', head: {}, body: anything}, for ZeroMQ it means BERT. There is a raw mode that you can use for other message formats, but using DripDrop::Messages makes things easier, and for some socket types (like XREQ/XREP) the predefined format is very useful in matching requests to replies.
+Note that these aren't regular ZMQ sockets, and that the HTTP server isn't a regular server. They only speak and respond using DripDrop::Message formatted messages. For HTTP/WebSockets it's JSON that looks like {name: 'name', head: {}, body: anything}, for ZeroMQ it means MessagePack. There is a raw mode that you can use for other message formats, but using DripDrop::Messages makes things easier, and for some socket types (like XREQ/XREP) the predefined format is very useful in matching requests to replies.
 
 #RDoc
 
@@ -48,7 +48,7 @@ RDocs can be found [here](http://www.rdoc.info/github/andrewvc/dripdrop/master/f
 
 #How It Works
 
-DripDrop encapsulates both zmqmachine, and eventmachine. It provides some sane default messaging choices, using [BERT](http://github.com/blog/531-introducing-bert-and-bert-rpc) (A binary, JSON, like serialization format) and JSON for serialization. While zmqmachine and eventmachine APIs, some convoluted ones, the goal here is to smooth over the bumps, and make them play together nicely.
+DripDrop encapsulates both zmqmachine, and eventmachine. It provides some sane default messaging choices, using [MessagePack](http://msgpack.org/)(A binary, JSON, like serialization format) and JSON for serialization. While zmqmachine and eventmachine APIs, some convoluted ones, the goal here is to smooth over the bumps, and make them play together nicely.
 
 #Contributors
 
