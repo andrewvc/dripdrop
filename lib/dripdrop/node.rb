@@ -10,6 +10,7 @@ require 'dripdrop/handlers/base'
 require 'dripdrop/handlers/zeromq'
 require 'dripdrop/handlers/websockets'
 require 'dripdrop/handlers/http'
+require 'dripdrop/handlers/unix_domain'
 
 class DripDrop
   class Node
@@ -196,8 +197,7 @@ class DripDrop
     def websocket(address,opts={})
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
-      handler = DripDrop::WebSocketHandler.new(uri,h_opts)
-      handler
+      DripDrop::WebSocketHandler.new(uri,h_opts)
     end
     
     # Starts a new Thin HTTP server listening on address.
@@ -206,8 +206,7 @@ class DripDrop
     def http_server(address,opts={},&block)
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
-      handler = DripDrop::HTTPServerHandler.new(uri, h_opts,&block)
-      handler
+      DripDrop::HTTPServerHandler.new(uri, h_opts,&block)
     end
     
     # An EM HTTP client.
@@ -219,8 +218,12 @@ class DripDrop
     def http_client(address,opts={})
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
-      handler = DripDrop::HTTPClientHandler.new(uri, h_opts)
-      handler
+      DripDrop::HTTPClientHandler.new(uri, h_opts)
+    end
+
+    # Creates a UNIX Domain Socket connection
+    def unix_domain(path, bind_or_connect)
+      DripDrop::UnixDomainHandler.new(path, bind_or_connect)
     end
 
     # An inprocess pub/sub queue that works similarly to EM::Channel, 
