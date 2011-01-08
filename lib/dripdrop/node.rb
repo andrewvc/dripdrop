@@ -196,8 +196,7 @@ class DripDrop
     def websocket(address,opts={})
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
-      handler = DripDrop::WebSocketHandler.new(uri,h_opts)
-      handler
+      DripDrop::WebSocketHandler.new(uri,h_opts)
     end
     
     # Starts a new Thin HTTP server listening on address.
@@ -206,8 +205,7 @@ class DripDrop
     def http_server(address,opts={},&block)
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
-      handler = DripDrop::HTTPServerHandler.new(uri, h_opts,&block)
-      handler
+      DripDrop::HTTPServerHandler.new(uri, h_opts,&block)
     end
     
     # An EM HTTP client.
@@ -219,8 +217,7 @@ class DripDrop
     def http_client(address,opts={})
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
-      handler = DripDrop::HTTPClientHandler.new(uri, h_opts)
-      handler
+      DripDrop::HTTPClientHandler.new(uri, h_opts)
     end
 
     # An inprocess pub/sub queue that works similarly to EM::Channel, 
