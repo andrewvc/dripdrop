@@ -3,27 +3,28 @@ class DripDrop::Node
   class Nodelet
     attr_accessor :name, :routing
     
-    def initialize(name, routes)
-      @name    = name
-      @routing = {}
-      routes.each do |route_name,handler|
-        # Copy the original routing table
-        route route_name, handler
-      
-        # Define short versions of the local routes for
-        # this nodelet's routing table
-        if (route_name.to_s =~ /^#{name}_(.+)$/)
-          short_name = $1
-          route short_name, handler
-        end
-      end
+    def initialize(ctx, name, routes)
+      @ctx              = ctx
+      @name             = name
+      @internal_routing = {}
     end
     
-    def route(name,handler)
-      @routing[name] = handler
+    def route(name,handler_type,*handler_args)
+      handler = @ctx.route_full(self, name, handler_type, *handler_args)
+      @internal_routing[name] = handler
+       
       (class << self; self; end).class_eval do
         define_method(name) { handler }
       end
+    end
+
+    # Check for the method as a route in @ctx, if found
+    # memoize it by defining it as a singleton
+    def method_missing(meth,*args)
+      (class << self; self; end).class_eval do
+        define_method(meth) { @ctx.send(meth,*args) }
+      end
+      self.send(meth,*args)
     end
   end
 end

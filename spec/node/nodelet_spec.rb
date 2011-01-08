@@ -5,12 +5,12 @@ describe "nodelets" do
     nodelets = {}
     
     @node = run_reactor do
-      routes_for :distributor do
-        route :output, :zmq_push, rand_addr, :bind
+      routes_for :distributor do |nlet|
+        nlet.route :output, :zmq_push, rand_addr, :bind
       end
-      routes_for :worker_cluster do
-        route :worker1,     :zmq_pull, distributor_output.address, :connect
-        route :worker2,     :zmq_pull, distributor_output.address, :connect
+      routes_for :worker_cluster do |nlet|
+        nlet.route :worker1,     :zmq_pull, distributor_output.address, :connect
+        nlet.route :worker2,     :zmq_pull, distributor_output.address, :connect
       end
       
       nodelet :distributor do |d|
@@ -41,6 +41,14 @@ describe "nodelets" do
         nlet.send(route_name).should == handler
       end
     end
+  end
+
+  it "should return a DripDrop::Handler for short routes" do
+    @nodelets[:distributor].send(:output).should be_a(DripDrop::BaseHandler)
+  end
+
+  it "should return a DripDrop::Handler for long routes" do
+    @nodelets[:distributor].send(:distributor_output).should be_a(DripDrop::BaseHandler)
   end
   
   it "should define prefix-less versions of nodelet specific routes" do

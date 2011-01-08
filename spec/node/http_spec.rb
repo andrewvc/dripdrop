@@ -6,7 +6,7 @@ describe "http" do
     client = nil
     server = nil
     
-    @node = run_reactor(1) do
+    @node = run_reactor(2) do
       addr = rand_addr
       
       zmq_subscribe(rand_addr, :bind) do |message|

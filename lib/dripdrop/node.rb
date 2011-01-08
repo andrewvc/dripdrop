@@ -24,6 +24,7 @@ class DripDrop
       @debug      = opts[:debug]
       @recipients_for       = {}
       @handler_default_opts = {:debug => @debug}
+      @nodelets   = {}  # Cache of registered nodelets
     end
 
     # Starts the reactors and runs the block passed to initialize.
@@ -75,8 +76,14 @@ class DripDrop
     # See the docs for +routes_for+ for more info in grouping routes for
     # nodelets and maintaining sanity in larger apps
     def route(name,handler_type,*handler_args)
+      route_full(nil, name, handler_type, *handler_args)
+    end
+  
+    # Probably not useful for most, apps. This is used internally to 
+    # create a route for a given nodelet.
+    def route_full(nodelet, name, handler_type, *handler_args)
       # If we're in a route_for block, prepend appropriately
-      full_name = @route_prepend ? "#{@route_prepend}_#{name}".to_sym : name
+      full_name = (nodelet && nodelet.name) ? "#{nodelet.name}_#{name}".to_sym : name
       
       handler = self.send(handler_type, *handler_args)
       @routing[full_name] = handler
@@ -104,9 +111,8 @@ class DripDrop
     # Within the block scope of the +forwarder+ nodelet however, the routes are additionally
     # available with their own short names. See the +nodelet+ method for details.
     def routes_for(nodelet_name,&block)
-      @route_prepend = nodelet_name #This feels ugly. Blech.
-      block.call
-      @route_prepend = nil
+      nlet = nodelet(nodelet_name,&block)
+      block.call(nlet)
     end
 
     # Nodelets are a way of segmenting a DripDrop::Node. This can be used
@@ -125,10 +131,11 @@ class DripDrop
     #      ticker.send_message(:name => 'tick')
     #    end
     def nodelet(name,&block)
-      nlet_obj = Nodelet.new(name,routing)
-      block.call(nlet_obj)
+      nlet = @nodelets[name] ||= Nodelet.new(self,name,routing)
+      block.call(nlet) if block
+      nlet
     end
-    
+
     # Creates a ZMQ::SUB type socket. Can only receive messages via +on_recv+.
     # zmq_subscribe sockets have a +topic_filter+ option, which restricts which
     # messages they can receive. It takes a regexp as an option.
