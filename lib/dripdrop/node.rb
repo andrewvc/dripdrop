@@ -34,7 +34,13 @@ class DripDrop
         EM.run do
           ZM::Reactor.new(:my_reactor).run do |zm_reactor|
             @zm_reactor = zm_reactor
-            self.instance_eval(&@block)
+            if @block
+              self.instance_eval(&@block)
+            elsif self.respond_to?(:action)
+              self.action
+            else
+              raise "Could not start, no block or action specified"
+            end
           end
         end
       end
