@@ -1,0 +1,8 @@
+To run.
+
+In one terminal (in dripdrop root)
+ruby -I lib/ example/complex/server.rb
+
+
+In another terminal
+ruby spec/gimite-websocket.rb client ws://127.0.0.1:8080
