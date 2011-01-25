@@ -44,8 +44,12 @@ class WSListener
       end
       
       ws.on_close do
+        puts "Closed #{sid}"
+        @client_channel.unsubscribe sid
       end
       ws.on_error do
+        puts "Errored #{sid}"
+        @client_channel.unsubscribe sid
       end
     end
     
