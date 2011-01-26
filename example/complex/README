@@ -1,3 +1,15 @@
+This example creates an async, evented app that can do the following.
+
+* Broadcast messages to all connected websockets originating from a
+master control server.
+* Proxy requests sent via websocket to HTTP through a master
+control server
+
+It's broken into three parts
+* service.rb: The async core, written in dripdrop/eventmachine/zeromq
+* client.rb:  A Test websocket client
+* service.rb: A test HTTP web-service that could beb used to control messages
+
 To run.
 
 In one terminal (in dripdrop root)
