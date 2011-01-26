@@ -59,7 +59,7 @@ class DripDrop
             if part.class == String
               socket.send_message_string(part, multipart_flag)
             else
-              raise "Can only send Strings, not #{part.class}: #{part}"
+              $stderr.write "Can only send Strings, not #{part.class}: #{part}" if @debug
             end
           end
         end
