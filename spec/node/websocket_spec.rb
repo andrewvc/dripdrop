@@ -24,7 +24,7 @@ describe "websockets" do
         conn.send_message(message)
       end.on_close do |conn|
         close_occured = true
-      end.on_error do |conn|
+      end.on_error do |reason,conn|
         error_occured = true
       end
       

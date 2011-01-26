@@ -189,12 +189,12 @@ class DripDrop
     # +on_open+, +on_recv+, +on_close+ and +on_error+.
     #
     # For example +on_recv+ could be used to echo incoming messages thusly:
-    #    websocket(addr).on_open {|ws|
+    #    websocket(addr).on_open {|conn|
     #      ws.send_message(:name => 'ws_open_ack')
-    #    }.on_recv {|msg,ws|
-    #      ws.send(msg)
-    #    }.on_close {|ws|
-    #    }.on_error {|ws|
+    #    }.on_recv {|msg,conn|
+    #      conn.send(msg)
+    #    }.on_close {|conn|
+    #    }.on_error {|reason,conn|
     #    }
     #
     # The +ws+ object that's passed into the handlers is not

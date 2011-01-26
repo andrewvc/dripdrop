@@ -16,14 +16,14 @@ class DripDrop
           
         ws.onopen { @onopen_handler.call(dd_conn) if @onopen_handler }
         ws.onclose { @onclose_handler.call(dd_conn) if @onclose_handler }
-        ws.onerror { @onerror_handler.call(dd_conn) if @onerror_handler }
+        ws.onerror {|reason| @onerror_handler.call(reason, dd_conn) if @onerror_handler }
         
         ws.onmessage do |message|
           if @onmessage_handler
             begin
               message = DripDrop::Message.decode_json(message) unless @raw
             rescue StandardError => e
-              puts "Could not parse message: #{e.message}"
+              $stderr.write "Could not parse message: #{e.message}" if @debug
             end
              
             @onmessage_handler.call(message,dd_conn)
