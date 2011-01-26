@@ -3,6 +3,8 @@ To run.
 In one terminal (in dripdrop root)
 ruby -I lib/ example/complex/server.rb
 
+In another terminal (Websocket client)
+cd example/complex && ruby client.rb
 
-In another terminal
-ruby spec/gimite-websocket.rb client ws://127.0.0.1:8080
+In a third terminal (Minimal webapp in sinatra)
+cd example/complex && ruby service.rb
