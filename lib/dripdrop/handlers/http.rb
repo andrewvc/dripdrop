@@ -71,8 +71,10 @@ class DripDrop
       begin
         Thin::Logging.silent = true
          
+        uri_path = @uri.path.empty? ? '/' : @uri.path
+         
         Thin::Server.start(@uri.host, @uri.port) do
-          map '/' do
+          map uri_path do
             run HTTPApp.new(msg_format,&block)
           end
         end
@@ -94,9 +96,11 @@ class DripDrop
     def send_message(message,&block)
       dd_message = dd_messagify(message)
       if dd_message.class == DripDrop::Message
+        uri_path = @uri.path.empty? ? '/' : @uri.path
+        
         req = EM::Protocols::HttpClient.request(
           :host => @uri.host, :port => @uri.port,
-          :request => '/', :verb => 'POST',
+          :request => uri_path, :verb => 'POST',
           :contenttype => 'application/json',
           :content => dd_message.encode_json
         )
