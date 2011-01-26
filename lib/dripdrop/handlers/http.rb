@@ -79,7 +79,7 @@ class DripDrop
           end
         end
       rescue Exception => e
-        puts "Error in Thin server: #{e.message}\n#{e.backtrace.join("\n")}"
+        $stderr.write "Error in Thin server: #{e.message}\n#{e.backtrace.join("\n")}"
       end
     end
   end
