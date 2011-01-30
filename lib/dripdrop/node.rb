@@ -3,6 +3,7 @@ require 'ffi-rzmq'
 require 'zmqmachine'
 require 'eventmachine'
 require 'uri'
+require 'resolv'
 
 require 'dripdrop/message'
 require 'dripdrop/node/nodelet'
@@ -10,6 +11,10 @@ require 'dripdrop/handlers/base'
 require 'dripdrop/handlers/zeromq'
 require 'dripdrop/handlers/websockets'
 require 'dripdrop/handlers/http'
+
+if defined?(Fiber)
+  require 'em-resolv-replace'
+end
 
 class DripDrop
   class Node
@@ -276,7 +281,8 @@ class DripDrop
     
     def zmq_handler(klass, zm_sock_type, address, socket_ctype, opts={})
       addr_uri = URI.parse(address)
-      zm_addr  = ZM::Address.new(addr_uri.host,addr_uri.port.to_i,addr_uri.scheme.to_sym)
+      host = Resolv.getaddresses(addr_uri.host).first
+      zm_addr  = ZM::Address.new(host,addr_uri.port.to_i,addr_uri.scheme.to_sym)
       h_opts   = handler_opts_given(opts)
       handler  = klass.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
       @zm_reactor.send(zm_sock_type,handler)
