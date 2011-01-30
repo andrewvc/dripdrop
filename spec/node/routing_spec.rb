@@ -53,10 +53,10 @@ describe "routing" do
         :worker_cluster_worker2 => {:class => DripDrop::ZMQPullHandler, :socket_ctype => :connect}
       }
       @node = run_reactor do
-        routes_for :distributor do |nlet|
+        nodelet :distributor do |nlet|
           nlet.route :output, :zmq_push, rand_addr, :bind
         end
-        routes_for :worker_cluster do |nlet|
+        nodelet :worker_cluster do |nlet|
           nlet.route :worker1,     :zmq_pull, distributor_output.address, :connect
           nlet.route :worker2,     :zmq_pull, distributor_output.address, :connect
         end
