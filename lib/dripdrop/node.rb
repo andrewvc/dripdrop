@@ -13,10 +13,6 @@ require 'dripdrop/handlers/zeromq'
 require 'dripdrop/handlers/websockets'
 require 'dripdrop/handlers/http'
 
-if defined?(Fiber)
-  require 'em-resolv-replace'
-end
-
 class DripDrop
   class Node
     attr_reader   :zm_reactor, :routing, :nodelets

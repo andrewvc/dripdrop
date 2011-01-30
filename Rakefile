@@ -17,7 +17,6 @@ begin
     gem.add_dependency('zmqmachine')
     gem.add_dependency('msgpack')
     gem.add_dependency('json')
-    gem.add_dependency('em-resolv-replace')
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError
