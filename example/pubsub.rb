@@ -1,9 +1,10 @@
+require 'rubygems'
 require 'dripdrop/node'
 Thread.abort_on_exception = true
 
 #Define our handlers
 DripDrop::Node.new do
-  route :pub,  :zmq_publish,   'tcp://127.0.0.1:2200', :bind
+  route :pub,  :zmq_publish,   'tcp://localhost:2200', :bind
   route :sub1, :zmq_subscribe, pub.address, :connect, :topic_filter => /[13579]$/
   route :sub2, :zmq_subscribe, pub.address, :connect, :topic_filter => /[02468]$/
   route :sub3, :zmq_subscribe, pub.address, :connect

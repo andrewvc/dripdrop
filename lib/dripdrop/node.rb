@@ -4,6 +4,7 @@ require 'zmqmachine'
 require 'eventmachine'
 require 'uri'
 require 'resolv'
+require 'ipaddr'
 
 require 'dripdrop/message'
 require 'dripdrop/node/nodelet'
@@ -281,8 +282,12 @@ class DripDrop
     
     def zmq_handler(klass, zm_sock_type, address, socket_ctype, opts={})
       addr_uri = URI.parse(address)
+       
       host = Resolv.getaddresses(addr_uri.host).first
-      zm_addr  = ZM::Address.new(host,addr_uri.port.to_i,addr_uri.scheme.to_sym)
+      host_addr = Resolv.getaddresses('localhost').map {|a| IPAddr.new(a)}.find {|a| a.ipv4?}
+      host_str  = host_addr.ipv6? ? "[#{host_addr.to_s}]" : host_addr.to_s
+
+      zm_addr  = ZM::Address.new(host_str,addr_uri.port.to_i,addr_uri.scheme.to_sym)
       h_opts   = handler_opts_given(opts)
       handler  = klass.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
       @zm_reactor.send(zm_sock_type,handler)
