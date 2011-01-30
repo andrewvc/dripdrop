@@ -112,21 +112,37 @@ class DripDrop
     # Nodelets are a way of segmenting a DripDrop::Node. This can be used
     # for both organization and deployment. One might want the production
     # deployment of an app to be broken across multiple servers or processes
-    # for instance. Additionally, by combining nodelets with +routes_for+
-    # managing routes becomes a little easier.
+    # for instance:
     #
-    # Nodelets can be used thusly:
-    #    routes_for :heartbeat do
-    #      route :ticker, :zmq_publish, 'tcp://127.0.0.1', :bind
+    #    nodelet :heartbeat do |nlet|
+    #      nlet.route :ticker, :zmq_publish, 'tcp://127.0.0.1', :bind
+    #      EM::PeriodicalTimer.new(1) do
+    #        nlet.ticker.send_message(:name => 'tick')
+    #      end
     #    end
     #
-    #    nodelet :heartbeat do
-    #      zm_reactor.periodical_timer(500) do
-    #      ticker.send_message(:name => 'tick')
+    # Nodelets can also be subclassed, for instance:
+    # 
+    #    class SpecialNodelet < DripDrop::Node::Nodelet
+    #      def action
+    #        nlet.route :ticker, :zmq_publish, 'tcp://127.0.0.1', :bind
+    #        EM::PeriodicalTimer.new(1) do
+    #          nlet.ticker.send_message(:name => 'tick')
+    #        end
+    #      end
     #    end
-    def nodelet(name,&block)
-      nlet = @nodelets[name] ||= Nodelet.new(self,name,routing)
-      block.call(nlet) if block
+    #
+    #    nodelet :heartbeat, SpecialNodelet
+    #
+    # If you specify a block, Nodelet#action will be ignored and the block
+    # will be run
+    def nodelet(name,klass=Nodelet,&block)
+      nlet = @nodelets[name] ||= klass.new(self,name,routing)
+      if block
+        block.call(nlet)
+      else
+        nlet.action
+      end
       nlet
     end
 

@@ -1,18 +1,23 @@
 require 'spec_helper'
 
 describe "nodelets" do
+  class SpecialNodelet < DripDrop::Node::Nodelet
+    def action
+      route :worker1,     :zmq_pull, distributor_output.address, :connect
+      route :worker2,     :zmq_pull, distributor_output.address, :connect
+    end
+  end
+  
   before(:all) do
     nodelets = {}
+    
     
     @node = run_reactor do
       nodelet :distributor do |nlet|
         nlet.route :output, :zmq_push, rand_addr, :bind
       end
       
-      nodelet :worker_cluster do |nlet|
-        nlet.route :worker1,     :zmq_pull, distributor_output.address, :connect
-        nlet.route :worker2,     :zmq_pull, distributor_output.address, :connect
-      end
+      nodelet :worker_cluster, SpecialNodelet
     end
     
     @nodelets = @node.nodelets
@@ -24,7 +29,7 @@ describe "nodelets" do
   
   it "should pass a DripDrop::Node::Nodelet to the block" do
     @nodelets.values.each do |nlet|
-      nlet.should be_instance_of(DripDrop::Node::Nodelet)
+      nlet.should be_kind_of(DripDrop::Node::Nodelet)
     end
   end
     
@@ -34,6 +39,10 @@ describe "nodelets" do
         nlet.send(route_name).should == handler
       end
     end
+  end
+  
+  it "should use the class SpecialNodelet for the nodelet assigned that" do
+    @nodelets[:worker_cluster].should be_a(SpecialNodelet)
   end
 
   it "should return a DripDrop::Handler for short routes" do
