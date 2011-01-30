@@ -53,8 +53,7 @@ describe DripDrop::Node do
       it_should_behave_like "all initialization methods"
     end
   end
-   
-
+  
   describe "shutdown" do
     before do
       @ddn = DripDrop::Node.new {
@@ -72,6 +71,20 @@ describe DripDrop::Node do
     
     it "should stop ZMQMachine" do
       @ddn.zm_reactor.running?.should be_false
+    end
+  end
+
+  describe "exceptions in EM reactor" do
+    class TestException < StandardError; end
+     
+    it "should rescue exceptions in the EM reactor" do
+      expectations = an_instance_of(TestException)
+      reactor = run_reactor do
+        self.should_receive(:error_handler).with(expectations)
+        EM.next_tick do
+          raise TestException, "foo"
+        end
+      end
     end
   end
 end

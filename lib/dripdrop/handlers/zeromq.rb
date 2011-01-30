@@ -27,7 +27,7 @@ class DripDrop
       elsif @socket_ctype == :connect
         socket.connect(@zaddress)
       else
-        raise "Unsupported socket ctype '#{@socket_ctype}'. Expected :bind or :connect"
+        EM.next_tick { raise "Unsupported socket ctype '#{@socket_ctype}'. Expected :bind or :connect" }
       end
     end
 
@@ -98,16 +98,18 @@ class DripDrop
     end
 
     def on_readable(socket, messages)
-      case @msg_format
-      when :raw
-        @recv_cbak.call(messages)
-      when :dripdrop
-        raise "Expected message in one part" if messages.length > 1
-        body  = messages.shift.copy_out_string
-        @recv_cbak.call(decode_message(body))
-      else
-        raise "Unknown message format '#{@msg_format}'"
-      end
+      EM.next_tick {
+        case @msg_format
+        when :raw
+          @recv_cbak.call(messages)
+        when :dripdrop
+          raise "Expected message in one part" if messages.length > 1
+          body  = messages.shift.copy_out_string
+          @recv_cbak.call(decode_message(body))
+        else
+          raise "Unknown message format '#{@msg_format}'"
+        end
+      }
     end
   end
 
@@ -127,19 +129,21 @@ class DripDrop
     end
 
     def on_readable(socket, messages)
-      if @msg_format == :dripdrop
-        unless messages.length == 2
-          puts "Expected pub/sub message to come in two parts, not #{messages.length}: #{messages.inspect}"
-          return false
+      EM.next_tick {
+        if @msg_format == :dripdrop
+          unless messages.length == 2
+            puts "Expected pub/sub message to come in two parts, not #{messages.length}: #{messages.inspect}"
+            return false
+          end
+          topic = messages.shift.copy_out_string
+          if @topic_filter.nil? || topic.match(@topic_filter)
+            body  = messages.shift.copy_out_string
+            @recv_cbak.call(decode_message(body))
+          end
+        else
+          super(socket,messages)
         end
-        topic = messages.shift.copy_out_string
-        if @topic_filter.nil? || topic.match(@topic_filter)
-          body  = messages.shift.copy_out_string
-          msg   = @recv_cbak.call(decode_message(body))
-        end
-      else
-        super(socket,messages)
-      end
+      }
     end
   end
 
@@ -176,16 +180,18 @@ class DripDrop
     end
 
     def on_readable(socket,messages)
-      if @msg_format == :dripdrop
-        identities = messages[0..-2].map {|m| m.copy_out_string}
-        body       = messages.last.copy_out_string
-        message    = decode_message(body)
-        seq        = message.head['_dripdrop/x_seq_counter']
-        response   = ZMQXRepHandler::Response.new(self, identities,seq)
-        @recv_cbak.call(message,response)
-      else
-        super(socket,messages)
-      end
+      EM.next_tick {
+        if @msg_format == :dripdrop
+          identities = messages[0..-2].map {|m| m.copy_out_string}
+          body       = messages.last.copy_out_string
+          message    = decode_message(body)
+          seq        = message.head['_dripdrop/x_seq_counter']
+          response   = ZMQXRepHandler::Response.new(self, identities,seq)
+          @recv_cbak.call(message,response)
+        else
+          super(socket,messages)
+        end
+      }
     end
 
     def send_message(message,identities,seq)
@@ -224,10 +230,12 @@ class DripDrop
       @promises = {}
 
       self.on_recv do |message|
-        seq = message.head['_dripdrop/x_seq_counter']
-        raise "Missing Seq Counter" unless seq
-        promise = @promises.delete(seq)
-        promise.call(message) if promise
+        EM.next_tick {
+          seq = message.head['_dripdrop/x_seq_counter']
+          raise "Missing Seq Counter" unless seq
+          promise = @promises.delete(seq)
+          promise.call(message) if promise
+        }
       end
     end
 

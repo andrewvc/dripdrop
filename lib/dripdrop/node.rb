@@ -31,6 +31,7 @@ class DripDrop
     # This is non-blocking.
     def start
       @thread = Thread.new do
+        EM.error_handler {|e| self.error_handler e}
         EM.run do
           ZM::Reactor.new(:my_reactor).run do |zm_reactor|
             @zm_reactor = zm_reactor
@@ -264,6 +265,11 @@ class DripDrop
     def remove_recv_internal(dest,identifier)
       return false unless @recipients_for[dest]
       @recipients_for[dest].delete(identifier)
+    end
+
+    # Catch all error handler
+    def error_handler(e)
+      $stderr.write "#{e.class}: #{e.message}\n\t#{e.backtrace.join("\n\t")}"
     end
 
     private
