@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrew Cholakian"]
-  s.date = %q{2011-01-24}
+  s.date = %q{2011-01-29}
   s.description = %q{Evented framework for ZeroMQ and EventMachine Apps. }
   s.email = %q{andrew@andrewvc.com}
   s.extra_rdoc_files = [
@@ -27,21 +27,14 @@ Gem::Specification.new do |s|
      "dripdrop.gemspec",
      "example/agent_test.rb",
      "example/combined.rb",
+     "example/complex/README",
+     "example/complex/client.rb",
+     "example/complex/server.rb",
+     "example/complex/service.rb",
+     "example/complex/websocket.rb",
      "example/http.rb",
      "example/pubsub.rb",
      "example/pushpull.rb",
-     "example/stats_app/core.rb",
-     "example/stats_app/public/.sass-cache/b48b4299d80c05f528daf63fe51d85e5e3c10d98/stats.scssc",
-     "example/stats_app/public/backbone.js",
-     "example/stats_app/public/build_templates.rb",
-     "example/stats_app/public/json2.js",
-     "example/stats_app/public/protovis-r3.2.js",
-     "example/stats_app/public/stats.css",
-     "example/stats_app/public/stats.haml",
-     "example/stats_app/public/stats.html",
-     "example/stats_app/public/stats.js",
-     "example/stats_app/public/stats.scss",
-     "example/stats_app/public/underscore.js",
      "example/subclass.rb",
      "example/xreq_xrep.rb",
      "js/dripdrop.html",
