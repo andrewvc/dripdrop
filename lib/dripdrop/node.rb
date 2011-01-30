@@ -13,7 +13,7 @@ require 'dripdrop/handlers/http'
 
 class DripDrop
   class Node
-    attr_reader   :zm_reactor, :routing
+    attr_reader   :zm_reactor, :routing, :nodelets
     attr_accessor :debug
     
     def initialize(opts={},&block)
@@ -102,21 +102,9 @@ class DripDrop
       handler
     end
 
-    # Defines a group of +route+s, to be used as the interface for a +nodelet+
-    # later on.
-    # 
-    # All routes defined with the +route_for+ block will be prepended with the
-    # +nodelet_name+ and an underscore. So, the following routes:
-    # 
-    #    routes_for :forwarder do
-    #      route :input,  :zmq_subscribe, 'tcp://127.0.0.1:2200', :bind
-    #      route :output, :zmq_publish,   f.in.address, :connect
-    #    end
-    # 
-    # Will yield the routes: +forwarder_input+ and +forwarder_output+ globally.
-    # Within the block scope of the +forwarder+ nodelet however, the routes are additionally
-    # available with their own short names. See the +nodelet+ method for details.
+    # DEPRECATED, will be deleted in 0.8
     def routes_for(nodelet_name,&block)
+      $stderr.write "routes_for is now deprecated, use nodelet instead"
       nlet = nodelet(nodelet_name,&block)
       block.call(nlet)
     end

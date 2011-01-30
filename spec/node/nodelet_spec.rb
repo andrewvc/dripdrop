@@ -5,24 +5,17 @@ describe "nodelets" do
     nodelets = {}
     
     @node = run_reactor do
-      routes_for :distributor do |nlet|
+      nodelet :distributor do |nlet|
         nlet.route :output, :zmq_push, rand_addr, :bind
       end
-      routes_for :worker_cluster do |nlet|
+      
+      nodelet :worker_cluster do |nlet|
         nlet.route :worker1,     :zmq_pull, distributor_output.address, :connect
         nlet.route :worker2,     :zmq_pull, distributor_output.address, :connect
       end
-      
-      nodelet :distributor do |d|
-        nodelets[:distributor] = d
-      end
-      
-      nodelet :worker_cluster do |wc|
-        nodelets[:worker_cluster] = wc
-      end
     end
     
-    @nodelets = nodelets
+    @nodelets = @node.nodelets
   end
   
   it "should create the nodelets" do
