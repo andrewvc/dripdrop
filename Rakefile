@@ -16,7 +16,7 @@ begin
     gem.add_dependency('thin')
     gem.add_dependency('zmqmachine')
     gem.add_dependency('msgpack')
-    gem.add_dependency('json')
+    gem.add_dependency('yajl-ruby')
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError

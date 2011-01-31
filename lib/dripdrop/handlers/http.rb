@@ -1,6 +1,5 @@
 require 'thin'
 require 'thin_parser'
-require 'json'
 
 class DripDrop
   class HTTPDeferrableBody < BaseHandler

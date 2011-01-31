@@ -1,6 +1,6 @@
 require 'rubygems'
 require 'msgpack'
-require 'json'
+require 'yajl'
 
 class DripDrop
   # DripDrop::Message messages are exchanged between all tiers in the architecture
@@ -19,6 +19,7 @@ class DripDrop
   # head should be used for metadata, body for the actual data.
   # These definitions are intentionally loose, because protocols tend to be used loosely.
   class Message
+     
     attr_accessor :name, :head, :body
 
     # Creates a new message.
@@ -43,7 +44,7 @@ class DripDrop
 
     # Encodes the hash represntation of the message to JSON
     def json_encoded
-      self.to_hash.to_json
+      Yajl::Encoder.encode self.to_hash
     end
     # (Deprecated, use json_encoded)
     def encode_json; json_encoded; end
@@ -94,8 +95,8 @@ class DripDrop
     # Decodes a string containing a JSON representation of a message
     def self.decode_json(str)
       begin
-        json_hash = JSON.parse(str)
-      rescue JSON::ParserError => e
+        json_hash = Yajl::Parser.parse(str)
+      rescue Yajl::ParserError => e
         puts "Could not parse msg '#{str}': #{e.message}"
         return nil
       end
