@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'ffi-rzmq'
-require 'zmqmachine'
 require 'eventmachine'
 require 'uri'
 require 'resolv'
@@ -19,7 +18,6 @@ class DripDrop
     attr_accessor :debug
     
     def initialize(opts={},&block)
-      @zm_reactor = nil # The instance of the zmq_machine reactor
       @block      = block
       @thread     = nil # Thread containing the reactors
       @routing    = {}  # Routing table
@@ -27,6 +25,7 @@ class DripDrop
       @recipients_for       = {}
       @handler_default_opts = {:debug => @debug}
       @nodelets   = {}  # Cache of registered nodelets
+      @zctx       = ZMQ::Context.new 1
     end
 
     # Starts the reactors and runs the block passed to initialize.
@@ -35,15 +34,12 @@ class DripDrop
       @thread = Thread.new do
         EM.error_handler {|e| self.error_handler e}
         EM.run do
-          ZM::Reactor.new(:my_reactor).run do |zm_reactor|
-            @zm_reactor = zm_reactor
-            if @block
-              self.instance_eval(&@block)
-            elsif self.respond_to?(:action)
-              self.action
-            else
-              raise "Could not start, no block or action specified"
-            end
+          if @block
+            self.instance_eval(&@block)
+          elsif self.respond_to?(:action)
+            self.action
+          else
+            raise "Could not start, no block or action specified"
           end
         end
       end
@@ -68,7 +64,6 @@ class DripDrop
 
     # Stops the reactors. If you were blocked on #join, that will unblock.
     def stop
-      @zm_reactor.stop
       EM.stop
     end
 
@@ -153,22 +148,22 @@ class DripDrop
     # zmq_subscribe sockets have a +topic_filter+ option, which restricts which
     # messages they can receive. It takes a regexp as an option.
     def zmq_subscribe(address,socket_ctype,opts={},&block)
-      zmq_handler(DripDrop::ZMQSubHandler,:sub_socket,address,socket_ctype,opts)
+      zmq_handler(DripDrop::ZMQSubHandler,ZMQ::SUB,address,socket_ctype,opts)
     end
 
     # Creates a ZMQ::PUB type socket, can only send messages via +send_message+
     def zmq_publish(address,socket_ctype,opts={})
-      zmq_handler(DripDrop::ZMQPubHandler,:pub_socket,address,socket_ctype,opts)
+      zmq_handler(DripDrop::ZMQPubHandler,ZMQ::PUB,address,socket_ctype,opts)
     end
 
     # Creates a ZMQ::PULL type socket. Can only receive messages via +on_recv+
     def zmq_pull(address,socket_ctype,opts={},&block)
-      zmq_handler(DripDrop::ZMQPullHandler,:pull_socket,address,socket_ctype,opts)
+      zmq_handler(DripDrop::ZMQPullHandler,ZMQ::PULL,address,socket_ctype,opts)
     end
 
     # Creates a ZMQ::PUSH type socket, can only send messages via +send_message+
     def zmq_push(address,socket_ctype,opts={})
-      zmq_handler(DripDrop::ZMQPushHandler,:push_socket,address,socket_ctype,opts)
+      zmq_handler(DripDrop::ZMQPushHandler,ZMQ::PUSH,address,socket_ctype,opts)
     end
 
     # Creates a ZMQ::XREP type socket, both sends and receivesc XREP sockets are extremely
@@ -184,12 +179,12 @@ class DripDrop
     #    end
     #
     def zmq_xrep(address,socket_ctype,opts={})
-      zmq_handler(DripDrop::ZMQXRepHandler,:xrep_socket,address,socket_ctype,opts)
+      zmq_handler(DripDrop::ZMQXRepHandler,ZMQ::XREP,address,socket_ctype,opts)
     end
  
     # See the documentation for +zmq_xrep+ for more info
     def zmq_xreq(address,socket_ctype,opts={})
-      zmq_handler(DripDrop::ZMQXReqHandler,:xreq_socket,address,socket_ctype,opts)
+      zmq_handler(DripDrop::ZMQXReqHandler,ZMQ::XREQ,address,socket_ctype,opts)
     end
 
     # Binds an EM websocket connection to +address+. takes blocks for
@@ -276,17 +271,18 @@ class DripDrop
 
     private
     
-    def zmq_handler(klass, zm_sock_type, address, socket_ctype, opts={})
+    def zmq_handler(klass, sock_type, address, socket_ctype, opts={})
       addr_uri = URI.parse(address)
        
       host = Resolv.getaddresses(addr_uri.host).first
       host_addr = Resolv.getaddresses('localhost').map {|a| IPAddr.new(a)}.find {|a| a.ipv4?}
       host_str  = host_addr.ipv6? ? "[#{host_addr.to_s}]" : host_addr.to_s
 
-      zm_addr  = ZM::Address.new(host_str,addr_uri.port.to_i,addr_uri.scheme.to_sym)
-      h_opts   = handler_opts_given(opts)
-      handler  = klass.new(zm_addr,@zm_reactor,socket_ctype,h_opts)
-      @zm_reactor.send(zm_sock_type,handler)
+      z_addr      =  "#{addr_uri.scheme}://#{host_str}:#{addr_uri.port.to_i}"
+      h_opts      = handler_opts_given(opts)
+      connection = EM::ZeroMQ.create @zctx, sock_type, socket_ctype, address, klass.new
+      handler            = connection.handler
+      handler.connection = connection
       handler
     end   
     

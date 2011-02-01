@@ -1,6 +1,8 @@
 require 'ffi-rzmq'
+require 'em-zeromq'
 
 class DripDrop
+  
   #Setup the default message class handler first
   class << self
     attr_accessor :default_message_class
@@ -9,32 +11,22 @@ class DripDrop
   end
 
   class ZMQBaseHandler < BaseHandler
-    attr_reader :address, :socket_ctype, :socket
+    attr_accessor :connection
 
-    def initialize(zaddress,zm_reactor,socket_ctype,opts={})
-      @zaddress     = zaddress
-      @address      = @zaddress.to_s
-      @zm_reactor   = zm_reactor
-      @socket_ctype = socket_ctype # :bind or :connect
-      @debug        = opts[:debug] # TODO: Start actually using this
+    def initialize(opts={})
       @opts         = opts
-    end
-
-    def on_attach(socket)
-      @socket = socket
-      if    @socket_ctype == :bind
-        socket.bind(@zaddress)
-      elsif @socket_ctype == :connect
-        socket.connect(@zaddress)
-      else
-        EM.next_tick { raise "Unsupported socket ctype '#{@socket_ctype}'. Expected :bind or :connect" }
-      end
+      @connection   = nil
+      @msg_format   = opts[:msg_format] || :dripdrop
     end
 
     def on_recv(msg_format=:dripdrop,&block)
       @msg_format = msg_format
       @recv_cbak = block
       self
+    end
+
+    def address
+      self.connection.address
     end
   end
 
@@ -51,20 +43,20 @@ class DripDrop
         num_parts = message.length
         message.each_with_index do |part,i|
           # Set the multi-part flag unless this is the last message
-          multipart_flag = i + 1 < num_parts ? true : false
+          multipart_flag = i + 1 < num_parts ? ZMQ::SNDMORE : 0
 
           if part.class == ZMQ::Message
-            socket.send_message(part, multipart_flag)
+            socket.send(part, multipart_flag)
           else
             if part.class == String
-              socket.send_message_string(part, multipart_flag)
+              socket.send_string(part, multipart_flag)
             else
               $stderr.write "Can only send Strings, not #{part.class}: #{part}" if @debug
             end
           end
         end
       else
-        @zm_reactor.deregister_writable(socket)
+        @connection.deregister_writable
       end
     end
 
@@ -81,7 +73,7 @@ class DripDrop
       else
         @send_queue.push([message])
       end
-      @zm_reactor.register_writable(@socket)
+      @connection.register_writable
     end
   end
 
@@ -98,18 +90,16 @@ class DripDrop
     end
 
     def on_readable(socket, messages)
-      EM.next_tick {
-        case @msg_format
-        when :raw
-          @recv_cbak.call(messages)
-        when :dripdrop
-          raise "Expected message in one part" if messages.length > 1
-          body  = messages.shift.copy_out_string
-          @recv_cbak.call(decode_message(body))
-        else
-          raise "Unknown message format '#{@msg_format}'"
-        end
-      }
+      case @msg_format
+      when :raw
+        @recv_cbak.call(messages)
+      when :dripdrop
+        raise "Expected message in one part" if messages.length > 1
+        body  = messages.shift.copy_out_string
+        @recv_cbak.call(decode_message(body))
+      else
+        raise "Unknown message format '#{@msg_format}'"
+      end
     end
   end
 
@@ -129,21 +119,18 @@ class DripDrop
     end
 
     def on_readable(socket, messages)
-      EM.next_tick {
-        if @msg_format == :dripdrop
-          unless messages.length == 2
-            puts "Expected pub/sub message to come in two parts, not #{messages.length}: #{messages.inspect}"
-            return false
-          end
-          topic = messages.shift.copy_out_string
-          if @topic_filter.nil? || topic.match(@topic_filter)
-            body  = messages.shift.copy_out_string
-            @recv_cbak.call(decode_message(body))
-          end
-        else
-          super(socket,messages)
+      if @msg_format == :dripdrop
+        unless messages.length == 2
+          return false
         end
-      }
+        topic = messages.shift.copy_out_string
+        if @topic_filter.nil? || topic.match(@topic_filter)
+          body  = messages.shift.copy_out_string
+          @recv_cbak.call(decode_message(body))
+        end
+      else
+        super(socket,messages)
+      end
     end
   end
 
@@ -180,18 +167,16 @@ class DripDrop
     end
 
     def on_readable(socket,messages)
-      EM.next_tick {
-        if @msg_format == :dripdrop
-          identities = messages[0..-2].map {|m| m.copy_out_string}
-          body       = messages.last.copy_out_string
-          message    = decode_message(body)
-          seq        = message.head['_dripdrop/x_seq_counter']
-          response   = ZMQXRepHandler::Response.new(self, identities,seq)
-          @recv_cbak.call(message,response)
-        else
-          super(socket,messages)
-        end
-      }
+      if @msg_format == :dripdrop
+        identities = messages[0..-2].map {|m| m.copy_out_string}
+        body       = messages.last.copy_out_string
+        message    = decode_message(body)
+        seq        = message.head['_dripdrop/x_seq_counter']
+        response   = ZMQXRepHandler::Response.new(self, identities,seq)
+        @recv_cbak.call(message,response)
+      else
+        super(socket,messages)
+      end
     end
 
     def send_message(message,identities,seq)
@@ -230,12 +215,10 @@ class DripDrop
       @promises = {}
 
       self.on_recv do |message|
-        EM.next_tick {
-          seq = message.head['_dripdrop/x_seq_counter']
-          raise "Missing Seq Counter" unless seq
-          promise = @promises.delete(seq)
-          promise.call(message) if promise
-        }
+        seq = message.head['_dripdrop/x_seq_counter']
+        raise "Missing Seq Counter" unless seq
+        promise = @promises.delete(seq)
+        promise.call(message) if promise
       end
     end
 

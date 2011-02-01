@@ -13,7 +13,7 @@ DripDrop::Node.new do
   push = zmq_push(z_addr, :bind)
 
   i = 0
-  zm_reactor.periodical_timer(800) do
+  EM::PeriodicTimer.new(1) do
     i += 1
     puts i
     push.send_message(:name => 'test', :body => "Test Payload #{i}")

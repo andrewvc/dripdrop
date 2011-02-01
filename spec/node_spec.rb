@@ -56,9 +56,7 @@ describe DripDrop::Node do
   
   describe "shutdown" do
     before do
-      @ddn = DripDrop::Node.new {
-        zmq_subscribe(rand_addr,:bind) #Keeps ZMQMachine Happy
-      }
+      @ddn = DripDrop::Node.new {}
       @ddn.start
       sleep 0.1
       @ddn.stop rescue nil
@@ -67,10 +65,6 @@ describe DripDrop::Node do
   
     it "should stop EventMachine" do
       EM.reactor_running?.should be_false
-    end
-    
-    it "should stop ZMQMachine" do
-      @ddn.zm_reactor.running?.should be_false
     end
   end
 

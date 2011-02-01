@@ -67,16 +67,16 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{Evented framework for ZeroMQ and EventMachine Apps.}
   s.test_files = [
-    "spec/node_spec.rb",
-     "spec/spec_helper.rb",
-     "spec/gimite-websocket.rb",
-     "spec/message_spec.rb",
-     "spec/node/nodelet_spec.rb",
+    "spec/node/nodelet_spec.rb",
      "spec/node/zmq_pushpull_spec.rb",
      "spec/node/zmq_xrepxreq_spec.rb",
      "spec/node/routing_spec.rb",
      "spec/node/websocket_spec.rb",
-     "spec/node/http_spec.rb"
+     "spec/node/http_spec.rb",
+     "spec/node_spec.rb",
+     "spec/spec_helper.rb",
+     "spec/gimite-websocket.rb",
+     "spec/message_spec.rb"
   ]
 
   if s.respond_to? :specification_version then
@@ -90,7 +90,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<thin>, [">= 0"])
       s.add_runtime_dependency(%q<zmqmachine>, [">= 0"])
       s.add_runtime_dependency(%q<msgpack>, [">= 0"])
-      s.add_runtime_dependency(%q<json>, [">= 0"])
+      s.add_runtime_dependency(%q<yajl-ruby>, [">= 0"])
     else
       s.add_dependency(%q<ffi-rzmq>, [">= 0"])
       s.add_dependency(%q<eventmachine>, [">= 0"])
@@ -98,7 +98,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<thin>, [">= 0"])
       s.add_dependency(%q<zmqmachine>, [">= 0"])
       s.add_dependency(%q<msgpack>, [">= 0"])
-      s.add_dependency(%q<json>, [">= 0"])
+      s.add_dependency(%q<yajl-ruby>, [">= 0"])
     end
   else
     s.add_dependency(%q<ffi-rzmq>, [">= 0"])
@@ -107,7 +107,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<thin>, [">= 0"])
     s.add_dependency(%q<zmqmachine>, [">= 0"])
     s.add_dependency(%q<msgpack>, [">= 0"])
-    s.add_dependency(%q<json>, [">= 0"])
+    s.add_dependency(%q<yajl-ruby>, [">= 0"])
   end
 end
 

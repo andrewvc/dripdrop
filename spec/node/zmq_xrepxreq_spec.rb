@@ -7,7 +7,7 @@ describe "zmq xreq/xrep" do
     req = nil
     rep = nil
     
-    @node = run_reactor do
+    @node = run_reactor(0.5) do
       addr = rand_addr
       
       rep = zmq_xrep(addr, :bind)
@@ -74,7 +74,7 @@ describe "zmq xreq/xrep" do
     it "should send responses back to the proper xreq sender" do
       received_count = 0
       
-      run_reactor(0.2) do
+      run_reactor(0.5) do
         addr = rand_addr
         
         rep  = zmq_xrep(addr, :bind)
@@ -89,14 +89,14 @@ describe "zmq xreq/xrep" do
         r2_msg = DripDrop::Message.new("REQ2 Message")
         
         10.times do
-        req1.send_message(r1_msg) do |message|
-          received_count += 1
-          message.name.should == r1_msg.name
-        end
-        req2.send_message(r2_msg) do |message|
-          received_count += 1
-          message.name.should == r2_msg.name
-        end
+          req1.send_message(r1_msg) do |message|
+            received_count += 1
+            message.name.should == r1_msg.name
+          end
+          req2.send_message(r2_msg) do |message|
+            received_count += 1
+            message.name.should == r2_msg.name
+          end
         end
       end
        

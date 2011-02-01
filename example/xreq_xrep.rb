@@ -11,7 +11,7 @@ DripDrop::Node.new do
   end
 
   i = 0; k = 0
-  zm_reactor.periodical_timer(1000) do
+  EM::PeriodicTimer.new(1) do
     i += 1; k += 1
      
     xreq_client.send_message(:name => 'test', :body => "Test Payload i#{i}") do |message|

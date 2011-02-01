@@ -24,7 +24,6 @@ describe "routing" do
       @expected_routing.each do |route_name,expected_props|
         handler = @node.send(route_name)
         handler.class.should == expected_props[:class]
-        handler.socket_ctype.should == expected_props[:socket_ctype]
       end
     end
   end
@@ -32,9 +31,9 @@ describe "routing" do
   context "with no groups" do
     before(:all) do
       @expected_routing = {
-        :distributor => {:class => DripDrop::ZMQPushHandler, :socket_ctype => :bind},
-        :worker1     => {:class => DripDrop::ZMQPullHandler, :socket_ctype => :connect},
-        :worker2     => {:class => DripDrop::ZMQPullHandler, :socket_ctype => :connect}
+        :distributor => {:class => DripDrop::ZMQPushHandler},
+        :worker1     => {:class => DripDrop::ZMQPullHandler},
+        :worker2     => {:class => DripDrop::ZMQPullHandler}
       }
       @node = run_reactor do
         route :distributor, :zmq_push, rand_addr, :bind

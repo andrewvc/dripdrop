@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'set'
 
 describe "zmq push/pull" do
   def pp_send_messages(to_send)
