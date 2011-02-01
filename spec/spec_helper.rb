@@ -16,5 +16,3 @@ def run_reactor(time=0.2,opts={},&block)
   sleep 0.1
   ddn
 end
-
-

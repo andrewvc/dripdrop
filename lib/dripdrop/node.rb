@@ -14,6 +14,8 @@ require 'dripdrop/handlers/http'
 
 class DripDrop
   class Node
+    ZCTX = ZMQ::Context.new 1
+    
     attr_reader   :zm_reactor, :routing, :nodelets
     attr_accessor :debug
     
@@ -25,7 +27,7 @@ class DripDrop
       @recipients_for       = {}
       @handler_default_opts = {:debug => @debug}
       @nodelets   = {}  # Cache of registered nodelets
-      @zctx       = ZMQ::Context.new 1
+      @zctx = ZCTX
     end
 
     # Starts the reactors and runs the block passed to initialize.
