@@ -28,6 +28,9 @@ class DripDrop
     def address
       self.connection.address
     end
+
+    #Triggered after a handler is setup
+    def post_setup; end
   end
 
   module ZMQWritableHandler
@@ -113,11 +116,6 @@ class DripDrop
       self.topic_filter = @opts[:topic_filter]
     end
 
-    def on_attach(socket)
-      super(socket)
-      socket.subscribe('')
-    end
-
     def on_readable(socket, messages)
       if @msg_format == :dripdrop
         unless messages.length == 2
@@ -131,6 +129,10 @@ class DripDrop
       else
         super(socket,messages)
       end
+    end
+
+    def post_setup
+      @connection.socket.setsockopt(ZMQ::SUBSCRIBE, '')
     end
   end
 
