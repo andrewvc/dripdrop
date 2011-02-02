@@ -37,6 +37,7 @@ class DripDrop
     def initialize(*args)
       super(*args)
       @send_queue = []
+      @send_queue_enabled = false
     end
 
     def on_writable(socket)
@@ -59,7 +60,7 @@ class DripDrop
           end
         end
       else
-        @connection.deregister_writable
+        @connection.deregister_writable if @send_queue_enabled
       end
     end
 
@@ -76,7 +77,13 @@ class DripDrop
       else
         @send_queue.push([message])
       end
-      @connection.register_writable
+        
+      
+      if @send_queue_enabled
+        @connection.register_writable
+      else
+        on_writable(@connection.socket)
+      end
     end
   end
 
@@ -103,6 +110,10 @@ class DripDrop
       else
         raise "Unknown message format '#{@msg_format}'"
       end
+    end
+
+    def post_setup
+      @connection.register_readable
     end
   end
 
@@ -132,6 +143,7 @@ class DripDrop
     end
 
     def post_setup
+      super
       @connection.socket.setsockopt(ZMQ::SUBSCRIBE, '')
     end
   end
@@ -184,9 +196,12 @@ class DripDrop
     def send_message(message,identities,seq)
       if message.is_a?(DripDrop::Message)
         message.head['_dripdrop/x_seq_counter'] = seq
-        super(identities + [message.encoded])
+         
+        resp  = identities + ['', message.encoded]
+        super(resp)
       else
-        super(message)
+        resp  = identities + ['', message]
+        super(resp)
       end
     end
   end
@@ -233,6 +248,11 @@ class DripDrop
         message = dd_message
       end
       super(message)
+    end
+
+    def on_readable(socket, messages)
+      # Strip out empty delimiter
+      super(socket, messages[1..-1])
     end
   end
 end

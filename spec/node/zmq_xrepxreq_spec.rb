@@ -7,7 +7,7 @@ describe "zmq xreq/xrep" do
     req = nil
     rep = nil
     
-    @node = run_reactor(0.5) do
+    @node = run_reactor(1.5) do
       addr = rand_addr
       
       rep = zmq_xrep(addr, :bind)
@@ -41,12 +41,14 @@ describe "zmq xreq/xrep" do
 
     it "should receive all sent messages in order" do
       @sent.zip(@recvd).each do |sent,recvd|
+        recvd[:message].should be_a(DripDrop::Message)
         recvd[:message].name.should == sent.name
       end
     end
     
     it "should receive a reply message for each sent message" do
       @sent.zip(@replied).each do |sent, replied|
+        replied.should be_a(DripDrop::Message)
         replied.body['orig_name'].should == sent.name
       end
     end
