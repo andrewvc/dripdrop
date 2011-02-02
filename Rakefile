@@ -14,7 +14,7 @@ begin
     gem.add_dependency('eventmachine')
     gem.add_dependency('em-websocket')
     gem.add_dependency('thin')
-    gem.add_dependency('zmqmachine')
+    gem.add_dependency('em-zeromq')
     gem.add_dependency('msgpack')
     gem.add_dependency('yajl-ruby')
   end
