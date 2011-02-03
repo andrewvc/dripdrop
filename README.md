@@ -1,8 +1,6 @@
 # DripDrop
 
-**Note: For now, for PUSH/PULL support you'll need to build zmqmachine from my fork of zmqmachine, the official gem does not yet have this**
-
-DripDrop is ZeroMQ(using zmqmachine) + Event Machine simplified for the general use case + serialization helpers.
+DripDrop is a library for structured message-passing async apps using EventMachine, ZeroMQ, and other protocols.
 
 Here's an example of the kind of thing DripDrop makes easy, from [example/combined.rb](http://github.com/andrewvc/dripdrop/blob/master/example/combined.rb)
   
@@ -40,7 +38,7 @@ Here's an example of the kind of thing DripDrop makes easy, from [example/combin
       end
     end.start! #Start the reactor and block until complete
 
-Note that these aren't regular ZMQ sockets, and that the HTTP server isn't a regular server. They only speak and respond using DripDrop::Message formatted messages. For HTTP/WebSockets it's JSON that looks like {name: 'name', head: {}, body: anything}, for ZeroMQ it means MessagePack. There is a raw mode that you can use for other message formats, but using DripDrop::Messages makes things easier, and for some socket types (like XREQ/XREP) the predefined format is very useful in matching requests to replies.
+Note that these aren't regular ZMQ sockets, and that the HTTP server isn't a regular server.They only speak and respond using DripDrop::Message formatted messages. For HTTP/WebSockets it's JSON that looks like {name: 'name', head: {}, body: anything}, for ZeroMQ it means MessagePack. There is a raw mode that you can use for other message formats, but using DripDrop::Messages makes things easier, and for some socket types (like XREQ/XREP) the predefined format is very useful in matching requests to replies.
 
 #RDoc
 
