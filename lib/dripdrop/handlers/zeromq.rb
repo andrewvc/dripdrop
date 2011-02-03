@@ -2,6 +2,7 @@ require 'ffi-rzmq'
 require 'em-zeromq'
 
 class DripDrop
+  SEQ_CTR_KEY = '_dd/xctr'
   
   #Setup the default message class handler first
   class << self
@@ -37,7 +38,7 @@ class DripDrop
     def initialize(*args)
       super(*args)
       @send_queue = []
-      @send_queue_enabled = false
+      @send_queue_enabled = true
     end
 
     def on_writable(socket)
@@ -47,13 +48,13 @@ class DripDrop
         num_parts = message.length
         message.each_with_index do |part,i|
           # Set the multi-part flag unless this is the last message
-          multipart_flag = i + 1 < num_parts ? ZMQ::SNDMORE : 0
+          flags = (i + 1 < num_parts ? ZMQ::SNDMORE : 0) + ZMQ::NOBLOCK
 
           if part.class == ZMQ::Message
-            socket.send(part, multipart_flag)
+            socket.send(part, flags)
           else
             if part.class == String
-              socket.send_string(part, multipart_flag)
+              socket.send_string(part, flags)
             else
               $stderr.write "Can only send Strings, not #{part.class}: #{part}" if @debug
             end
@@ -81,6 +82,9 @@ class DripDrop
       
       if @send_queue_enabled
         @connection.register_writable
+         
+        # Not sure why this is necessary, this is likely a bug in em-zeromq
+        on_writable(@connection.socket)
       else
         on_writable(@connection.socket)
       end
@@ -185,7 +189,7 @@ class DripDrop
         identities = messages[0..-2].map {|m| m.copy_out_string}
         body       = messages.last.copy_out_string
         message    = decode_message(body)
-        seq        = message.head['_dripdrop/x_seq_counter']
+        seq        = message.head[SEQ_CTR_KEY]
         response   = ZMQXRepHandler::Response.new(self, identities,seq)
         @recv_cbak.call(message,response)
       else
@@ -195,7 +199,7 @@ class DripDrop
 
     def send_message(message,identities,seq)
       if message.is_a?(DripDrop::Message)
-        message.head['_dripdrop/x_seq_counter'] = seq
+        message.head[SEQ_CTR_KEY] = seq
          
         resp  = identities + ['', message.encoded]
         super(resp)
@@ -232,7 +236,7 @@ class DripDrop
       @promises = {}
 
       self.on_recv do |message|
-        seq = message.head['_dripdrop/x_seq_counter']
+        seq = message.head[SEQ_CTR_KEY]
         raise "Missing Seq Counter" unless seq
         promise = @promises.delete(seq)
         promise.call(message) if promise
@@ -243,7 +247,7 @@ class DripDrop
       dd_message = dd_messagify(message)
       if dd_message.is_a?(DripDrop::Message)
         @seq_counter += 1
-        dd_message.head['_dripdrop/x_seq_counter'] = @seq_counter
+        dd_message.head[SEQ_CTR_KEY] = @seq_counter
         @promises[@seq_counter] = block if block
         message = dd_message
       end
