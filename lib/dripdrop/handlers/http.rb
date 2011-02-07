@@ -17,7 +17,7 @@ class DripDrop
     
     def send_message(raw_msg)
       msg = dd_messagify(raw_msg)
-      if msg.class == DripDrop::Message
+      if msg.is_a?(DripDrop::Message)
         json = msg.encode_json
         self.call([json])
         self.succeed
@@ -94,7 +94,7 @@ class DripDrop
     
     def send_message(message,&block)
       dd_message = dd_messagify(message)
-      if dd_message.class == DripDrop::Message
+      if dd_message.is_a?(DripDrop::Message)
         uri_path = @uri.path.empty? ? '/' : @uri.path
         
         req = EM::Protocols::HttpClient.request(

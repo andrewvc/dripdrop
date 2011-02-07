@@ -286,7 +286,7 @@ class DripDrop
 
       z_addr      =  "#{addr_uri.scheme}://#{host_str}:#{addr_uri.port.to_i}"
       h_opts      = handler_opts_given(opts)
-      connection = EM::ZeroMQ.create @zctx, sock_type, socket_ctype, address, klass.new
+      connection = EM::ZeroMQ.create @zctx, sock_type, socket_ctype, address, klass.new(h_opts)
       handler            = connection.handler
       handler.connection = connection
       handler.post_setup
