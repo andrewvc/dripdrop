@@ -35,15 +35,17 @@ class DripDrop
     def start
       @thread = Thread.new do
         EM.error_handler {|e| self.error_handler e}
-        EM.run do
-          if @block
-            self.instance_eval(&@block)
-          elsif self.respond_to?(:action)
-            self.action
-          else
-            raise "Could not start, no block or action specified"
-          end
-        end
+        EM.run { action }
+      end
+    end
+
+    # When subclassing +DripDrop::Node+ you probably want to define this method
+    # Otherwise it will attempt to run the @block passed into +DripDrop::Node.new+
+    def action
+      if @block
+        self.instance_eval(&@block)
+      else
+        raise "Could not start, no block or specified"
       end
     end
 
