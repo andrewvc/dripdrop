@@ -28,7 +28,7 @@ describe DripDrop::Message do
         }.should_not raise_exception
       end
       it "should set the head to a single key hash containing message class if nil provided" do
-        DripDrop::Message.new('nilhead', :head => nil).head.should == {'msg_class' => 'DripDrop::Message'}
+        DripDrop::Message.new('nilhead', :head => nil).head.should == {'message_class' => 'DripDrop::Message'}
       end
       it "should raise an exception if a non-hash, non-nil head is provided" do
         lambda {
@@ -67,7 +67,7 @@ describe DripDrop::Message do
       def create_auto_message
         attrs = {
           :name => 'test',
-          :head => {'foo' => 'bar', 'msg_class' => 'SpecMessageClass'},
+          :head => {'foo' => 'bar', 'message_class' => 'SpecMessageClass'},
           :body => ['foo', 'bar', 'baz']
         }
 
@@ -87,10 +87,10 @@ describe DripDrop::Message do
       end
 
       describe "DripDrop::AutoMessageClass" do
-        it "should create a properly classed message based on head['msg_class']" do
+        it "should create a properly classed message based on head['message_class']" do
           @message.should be_a(SpecMessageClass)
         end
-        it "should recreate a message based on head['msg_class']" do
+        it "should recreate a message based on head['message_class']" do
           DripDrop::AutoMessageClass.recreate_message(@message.to_hash).should be_a(SpecMessageClass)
         end
       end

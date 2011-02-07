@@ -31,7 +31,7 @@ class DripDrop
 
       @head = extra[:head] || extra['head'] || {}
       raise ArgumentError, "Invalid head #{@head}. Head must be a hash!" unless @head.is_a?(Hash)
-      @head['msg_class'] = self.class.to_s
+      @head['message_class'] = self.class.to_s
 
       @name = name
       @body = extra[:body] || extra['body']
@@ -72,7 +72,7 @@ class DripDrop
 
     def self.recreate_message(hash)
       raise ArgumentError, "Message missing head: #{hash.inspect}" unless hash['head']
-      raise ArgumentError, "Wrong message class #{hash['head']['msg_class']} for #{self.to_s}" unless hash['head']['msg_class'] == self.to_s
+      raise ArgumentError, "Wrong message class #{hash['head']['message_class']} for #{self.to_s}" unless hash['head']['message_class'] == self.to_s
       self.from_hash(hash)
     end
 
@@ -102,8 +102,8 @@ class DripDrop
       end
       
       # Keep this consistent
-      json_hash['head']['msg_class'] = json_hash['head']['msg_class']
-      json_hash['head'].delete('msg_class')
+      json_hash['head']['message_class'] = json_hash['head']['message_class']
+      json_hash['head'].delete('message_class')
        
       self.new(json_hash['name'], 'head' => json_hash['head'], :body => json_hash['body'])
     end
@@ -132,7 +132,7 @@ class DripDrop
           end
         raise ArgumentError, "Invalid head #{head.inspect}. Head must be a hash! (args: #{args.inspect})" unless head.is_a?(Hash)
 
-        msg_class = head['msg_class']
+        msg_class = head['message_class']
         unless DripDrop::AutoMessageClass.message_subclasses.has_key?(msg_class)
           raise ArgumentError, "Unknown AutoMessage message class #{msg_class}"
         end

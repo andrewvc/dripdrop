@@ -96,7 +96,7 @@ class DripDrop
 
     def initialize(*args)
       super(*args)
-      @message_class = @opts[:msg_class] || DripDrop.default_message_class
+      @message_class = @opts[:message_class] || DripDrop.default_message_class
     end
 
     def decode_message(msg)
