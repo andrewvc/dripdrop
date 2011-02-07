@@ -3,7 +3,7 @@ require 'msgpack'
 require 'yajl'
 
 class DripDrop
-  class WrongMessageClassError; end
+  class WrongMessageClassError < StandardError; end
   # DripDrop::Message messages are exchanged between all tiers in the architecture
   # A Message is composed of a name, head, and body, and should be restricted to types that
   # can be readily encoded to JSON.
@@ -73,7 +73,7 @@ class DripDrop
 
     def self.recreate_message(hash)
       raise ArgumentError, "Message missing head: #{hash.inspect}" unless hash['head']
-      raise WrongMessageClassError, "Wrong message class #{hash['head']['message_class']} for #{self.to_s}" unless hash['head']['message_class'] == self.to_s
+      raise DripDrop::WrongMessageClassError, "Wrong message class #{hash['head']['message_class']} for #{self.to_s}" unless hash['head']['message_class'] == self.to_s
       self.from_hash(hash)
     end
 

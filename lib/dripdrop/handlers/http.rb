@@ -63,6 +63,7 @@ class DripDrop
       @uri     = uri
       @address = uri.to_s
       @opts    = opts
+      @message_class = @opts[:message_class] || DripDrop.default_message_class
     end
     
     def on_recv(msg_format=:dripdrop_json,&block)
@@ -90,6 +91,7 @@ class DripDrop
       @uri     = uri
       @address = @uri.to_s
       @opts    = opts
+      @message_class = @opts[:message_class] || DripDrop.default_message_class
     end
     
     def send_message(message,&block)
@@ -104,7 +106,7 @@ class DripDrop
           :content => dd_message.encode_json
         )
         req.callback do |response|
-          block.call(DripDrop::Message.decode_json(response[:content]))
+          block.call(@message_class.decode_json(response[:content]))
         end
       else
         raise "Unsupported message type '#{dd_message.class}'"
