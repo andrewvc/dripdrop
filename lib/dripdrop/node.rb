@@ -39,6 +39,17 @@ class DripDrop
       end
     end
 
+    # Blocking version of start, equivalent to +start+ then +join+
+    def start!
+      self.start
+      self.join
+    end
+
+    # Stops the reactors. If you were blocked on #join, that will unblock.
+    def stop
+      EM.stop
+    end
+
     # When subclassing +DripDrop::Node+ you probably want to define this method
     # Otherwise it will attempt to run the @block passed into +DripDrop::Node.new+
     def action
@@ -59,18 +70,7 @@ class DripDrop
         raise "Can't join on a node that isn't yet started"
       end
     end
-
-    # Blocking version of start, equivalent to +start+ then +join+
-    def start!
-      self.start
-      self.join
-    end
-
-    # Stops the reactors. If you were blocked on #join, that will unblock.
-    def stop
-      EM.stop
-    end
-
+     
     # Defines a new route. Routes are the recommended way to instantiate
     # handlers. For example:
     #
