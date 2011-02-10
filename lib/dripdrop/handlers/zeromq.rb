@@ -48,7 +48,7 @@ class DripDrop
         num_parts = message.length
         message.each_with_index do |part,i|
           # Set the multi-part flag unless this is the last message
-          flags = (i + 1 < num_parts ? ZMQ::SNDMORE : 0) + ZMQ::NOBLOCK
+          flags = (i + 1 < num_parts ? ZMQ::SNDMORE : 0) | ZMQ::NOBLOCK
 
           if part.class == ZMQ::Message
             socket.send(part, flags)
