@@ -278,13 +278,14 @@ class DripDrop
     def zmq_handler(klass, sock_type, address, socket_ctype, opts={})
       addr_uri = URI.parse(address)
       
-      if addr_uri.scheme == 'tcp'  
-        host = Resolv.getaddresses(addr_uri.host).first
-        host_addr = Resolv.getaddresses('localhost').map {|a| IPAddr.new(a)}.find {|a| a.ipv4?}
-        host_str  = host_addr.ipv6? ? "[#{host_addr.to_s}]" : host_addr.to_s
-      else
-        host_str = addr_uri.host
-      end
+      host_str = addr_uri.host
+      #if addr_uri.scheme == 'tcp'  
+      #  host = Resolv.getaddresses(addr_uri.host).first
+      #  host_addr = Resolv.getaddresses('localhost').map {|a| IPAddr.new(a)}.find {|a| a.ipv4?}
+      #  host_str  = host_addr.ipv6? ? "[#{host_addr.to_s}]" : host_addr.to_s
+      #else
+      #  host_str = addr_uri.host
+      #end
 
       z_addr      =  "#{addr_uri.scheme}://#{host_str}:#{addr_uri.port.to_i}"
       h_opts      = handler_opts_given(opts)
