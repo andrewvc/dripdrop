@@ -1,5 +1,7 @@
 require 'spec_helper'
 
+require 'set'
+
 describe "http" do
   
   def http_send_messages(to_send,addr=rand_addr('http'),&block)
