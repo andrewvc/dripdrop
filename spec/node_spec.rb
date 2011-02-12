@@ -72,6 +72,7 @@ describe DripDrop::Node do
     class TestException < StandardError; end
      
     it "should rescue exceptions in the EM reactor" do
+      pending "Not sure if this feature is a good idea"
       expectations = an_instance_of(TestException)
       reactor = run_reactor do
         self.should_receive(:error_handler).with(expectations)

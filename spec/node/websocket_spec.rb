@@ -13,7 +13,7 @@ describe "websockets" do
     
     error_occured = false
     
-    @node = run_reactor(1) do
+    @node = run_reactor(2) do
       addr = rand_addr('ws')
       
       server = websocket(addr)

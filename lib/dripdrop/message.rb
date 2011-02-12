@@ -1,5 +1,4 @@
 require 'rubygems'
-require 'msgpack'
 require 'yajl'
 
 class DripDrop
@@ -40,12 +39,12 @@ class DripDrop
 
     # The encoded message, ready to be sent across the wire via ZMQ
     def encoded
-      self.to_hash.to_msgpack
+      Yajl::Encoder.encode self.to_hash
     end
 
-    # Encodes the hash represntation of the message to JSON
+    # (Deprecated) Encodes the hash represntation of the message to JSON
     def json_encoded
-      Yajl::Encoder.encode self.to_hash
+      encoded
     end
     # (Deprecated, use json_encoded)
     def encode_json; json_encoded; end
@@ -80,33 +79,17 @@ class DripDrop
     # Parses an already encoded string
     def self.decode(msg)
       return nil if msg.nil? || msg.empty?
-      #This makes parsing ZMQ messages less painful, even if its ugly here
-      #We check the class name as a string in case we don't have ZMQ loaded
-      if msg.class.to_s == 'ZMQ::Message'
-        msg = msg.copy_out_string
-        return nil if msg.empty?
-      end
-      decoded = MessagePack.unpack(msg)
+
+      decoded = Yajl::Parser.parse(msg)
       self.recreate_message(decoded)
     end
 
     # (Deprecated). Use decode instead
     def self.parse(msg); self.decode(msg) end
 
-    # Decodes a string containing a JSON representation of a message
+    # (Deprecated) Decodes a string containing a JSON representation of a message
     def self.decode_json(str)
-      begin
-        json_hash = Yajl::Parser.parse(str)
-      rescue Yajl::ParseError => e
-        puts "Could not parse msg '#{str}': #{e.message}"
-        return nil
-      end
-      
-      # Keep this consistent
-      json_hash['head']['message_class'] = json_hash['head']['message_class']
-      json_hash['head'].delete('message_class')
-       
-      self.new(json_hash['name'], 'head' => json_hash['head'], :body => json_hash['body'])
+      self.decode(str)
     end
   end
 

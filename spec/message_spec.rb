@@ -40,18 +40,13 @@ describe DripDrop::Message do
       before(:all) do
         @message, @attrs = create_basic
       end
-      it "should encode to valid MessagePack hash without error" do
+      it "should encode to valid JSON hash without error" do
         enc = @message.encoded
         enc.should be_a(String)
-        MessagePack.unpack(enc).should be_a(Hash)
+        Yajl::Parser.parse(enc).should be_a(Hash)
       end
       it "should decode encoded messages without errors" do
         DripDrop::Message.decode(@message.encoded).should be_a(DripDrop::Message)
-      end
-      it "should encode to valid JSON without error" do
-        enc = @message.json_encoded
-        enc.should be_a(String)
-        JSON.parse(enc).should be_a(Hash)
       end
       it "should decode JSON encoded messages without errors" do
         DripDrop::Message.decode_json(@message.json_encoded).should be_a(DripDrop::Message)

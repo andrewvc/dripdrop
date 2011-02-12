@@ -1,5 +1,4 @@
 require 'em-websocket'
-require 'json'
 
 class DripDrop
   class WebSocketHandler < BaseHandler
