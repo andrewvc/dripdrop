@@ -3,6 +3,7 @@ require 'yajl'
 
 class DripDrop
   class WrongMessageClassError < StandardError; end
+  
   # DripDrop::Message messages are exchanged between all tiers in the architecture
   # A Message is composed of a name, head, and body, and should be restricted to types that
   # can be readily encoded to JSON.
@@ -72,7 +73,12 @@ class DripDrop
 
     def self.recreate_message(hash)
       raise ArgumentError, "Message missing head: #{hash.inspect}" unless hash['head']
-      raise DripDrop::WrongMessageClassError, "Wrong message class #{hash['head']['message_class']} for #{self.to_s}" unless hash['head']['message_class'] == self.to_s
+       
+      klass = (hash['head'] && hash['head']['message_class']) ? constantize(hash['head']['message_class']) : nil
+      unless (klass == self) || self.subclasses.include?(klass)
+        raise DripDrop::WrongMessageClassError, "Wrong message class #{klass}, expected #{self}" 
+      end
+       
       self.from_hash(hash)
     end
 
@@ -90,6 +96,33 @@ class DripDrop
     # (Deprecated) Decodes a string containing a JSON representation of a message
     def self.decode_json(str)
       self.decode(str)
+    end
+
+    def self.constantize(str)
+      begin
+        str.split('::').inject(Object) {|memo,name|
+          memo =  memo.const_get(name); memo
+        }
+      rescue NameError => e
+        nil
+      end
+    end
+
+    #Used for reconstructing messages
+    def self.subclasses(direct = false)
+      classes = []
+      if direct
+        ObjectSpace.each_object(Class) do |c|
+          next unless c.superclass == self
+          classes << c
+        end
+      else
+        ObjectSpace.each_object(Class) do |c|
+          next unless c.ancestors.include?(self) and (c != self)
+          classes << c
+        end
+      end
+      classes
     end
   end
 
@@ -139,6 +172,7 @@ class DripDrop
       end
     end
   end
+
 
   #Including this module into your subclass will automatically register the class
   #with AutoMessageClass
