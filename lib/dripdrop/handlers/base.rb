@@ -7,11 +7,19 @@ class DripDrop
 
     def handle_error(exception)
       if @err_cbak
-        @err_cbak.call(exception)
+        begin
+          @err_cbak.call(exception)
+        rescue StandardError => e
+          print_exception(e)
+        end
       else
-        $stderr.write exception.message
-        $stderr.write exception.backtrace.join("\t\n")
+        print_exception(e)
       end
+    end
+
+    def print_exception(exception)
+      $stderr.write exception.message
+      $stderr.write exception.backtrace.join("\t\n")
     end
      
     private
