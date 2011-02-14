@@ -1,4 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), %w[. .. lib dripdrop]))
+require 'set'
+
 Thread.abort_on_exception = true
 
 # Used to test websocket clients. 

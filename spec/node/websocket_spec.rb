@@ -4,6 +4,7 @@ describe "websockets" do
   def websockets_send_messages(to_send,&block)
     received  = []
     responses = []
+    seen_signatures = Set.new
     server = nil
     
     open_message  = DripDrop::Message.new('open',  :body => 'test')
@@ -19,6 +20,7 @@ describe "websockets" do
       server = websocket(addr)
       server.on_open do |conn|
         conn.send_message(open_message)
+        seen_signatures << conn.signature
       end.on_recv do |message,conn|
         received << message
         conn.send_message(message)
@@ -41,6 +43,10 @@ describe "websockets" do
           recvd_count += 1
         end
         client.close
+        
+        # This one only connects to test unique signatures
+        client2 = WebSocket.new(addr)
+        client2.close
       end
       
       zmq_subscribe(rand_addr, :bind) {} #Keep zmqmachine happy
@@ -48,8 +54,8 @@ describe "websockets" do
     
     {:received => received, :responses => responses, 
      :open_message => open_message,   :open_received => open_received,
-     :close_occured => close_occured, :error_occured => error_occured, 
-     :handlers => {:server => server }}
+     :close_occured => close_occured, :error_occured => error_occured,
+     :seen_signatures => seen_signatures,:handlers => {:server => server }}
   end
   describe "basic sending and receiving" do
     before(:all) do
@@ -83,6 +89,10 @@ describe "websockets" do
 
     it "should not generate an error event" do
       @ws_info[:error_occured].should be_false
+    end
+    
+    it "should see unique connection signatures for each client" do
+      @ws_info[:seen_signatures].length.should == 2
     end
   end
 end
