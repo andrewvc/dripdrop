@@ -32,10 +32,9 @@ class DripDrop
       message     = @dd_handler.message_class.decode_json(@http_post_content)
       response    = EM::DelegatedHttpResponse.new(self)
       dd_response = HTTPServerHandlerResponse.new(response)
-      @dd_handler.recv_cbak.call(message, dd_response)
+      @dd_handler.recv_cbak.call(message, dd_response) if @dd_handler.recv_cbak
     end
   end
-
 
   class HTTPServerHandler < BaseHandler
     attr_reader :address, :opts, :message_class, :uri, :recv_cbak
@@ -78,7 +77,10 @@ class DripDrop
           :content => dd_message.encode_json
         )
         req.callback do |response|
-          block.call(@message_class.decode_json(response[:content]))
+          # Hack to fix evma http
+          response[:content] =~ /(\{.*\})/ 
+          fixed_body = $1
+          block.call(@message_class.decode_json(fixed_body))
         end
       else
         raise "Unsupported message type '#{dd_message.class}'"
