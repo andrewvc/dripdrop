@@ -38,7 +38,7 @@ class DripDrop
     def initialize(*args)
       super(*args)
       @send_queue = []
-      @send_queue_enabled = true
+      @send_queue_enabled = false
     end
 
     def on_writable(socket)
