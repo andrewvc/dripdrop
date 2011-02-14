@@ -29,10 +29,14 @@ class DripDrop
     end
     
     def process_http_request
-      message     = @dd_handler.message_class.decode_json(@http_post_content)
-      response    = EM::DelegatedHttpResponse.new(self)
-      dd_response = HTTPServerHandlerResponse.new(response)
-      @dd_handler.recv_cbak.call(message, dd_response) if @dd_handler.recv_cbak
+      begin
+        message     = @dd_handler.message_class.decode_json(@http_post_content)
+        response    = EM::DelegatedHttpResponse.new(self)
+        dd_response = HTTPServerHandlerResponse.new(response)
+        @dd_handler.recv_cbak.call(message, dd_response) if @dd_handler.recv_cbak
+      rescue StandardError => e
+        handler_error(e)
+      end
     end
   end
 

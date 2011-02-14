@@ -2,6 +2,8 @@ require 'em-websocket'
 
 class DripDrop
   class WebSocketHandler < BaseHandler
+    class SocketError < StandardError; attr_accessor :reason, :connection end
+    
     attr_reader :ws, :address, :thread
    
     def initialize(address,opts={})
@@ -15,17 +17,21 @@ class DripDrop
           
         ws.onopen  { @onopen_handler.call(dd_conn) if @onopen_handler }
         ws.onclose { @onclose_handler.call(dd_conn) if @onclose_handler }
-        ws.onerror {|reason| @onerror_handler.call(reason, dd_conn) if @onerror_handler }
+        ws.onerror {|reason|
+          e = SocketError.new
+          e.reason     = reason
+          e.connection = dd_conn
+          handle_error(e)
+        }
         
         ws.onmessage do |message|
           if @onmessage_handler
             begin
               message = DripDrop::Message.decode(message) unless @raw
+              @onmessage_handler.call(message,dd_conn)
             rescue StandardError => e
-              $stderr.write "Could not parse message: #{e.message}" if @debug
+              handle_error(e)
             end
-             
-            @onmessage_handler.call(message,dd_conn)
           end
         end
       end
@@ -50,11 +56,6 @@ class DripDrop
   
     def on_close(&block)
       @onclose_handler = block
-      self
-    end
-    
-    def on_error(&block)
-      @onerror_handler = block
       self
     end
   end

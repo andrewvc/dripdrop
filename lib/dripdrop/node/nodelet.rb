@@ -3,10 +3,15 @@ class DripDrop::Node
   class Nodelet
     attr_accessor :name, :routing
     
-    def initialize(ctx, name, routes)
+    def initialize(ctx, name, *configure_args) 
       @ctx              = ctx
       @name             = name
       @internal_routing = {}
+      configure(*configure_args)
+    end
+    
+    def configure(*args)
+      # Do nothing!
     end
     
     def route(name,handler_type,*handler_args)

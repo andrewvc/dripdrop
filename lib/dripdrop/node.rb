@@ -138,8 +138,8 @@ class DripDrop
     #
     # If you specify a block, Nodelet#action will be ignored and the block
     # will be run
-    def nodelet(name,klass=Nodelet,&block)
-      nlet = @nodelets[name] ||= klass.new(self,name,routing)
+    def nodelet(name,klass=Nodelet,*configure_args,&block)
+      nlet = @nodelets[name] ||= klass.new(self,name,*configure_args)
       if block
         block.call(nlet)
       else
@@ -147,7 +147,7 @@ class DripDrop
       end
       nlet
     end
-
+    
     # Creates a ZMQ::SUB type socket. Can only receive messages via +on_recv+.
     # zmq_subscribe sockets have a +topic_filter+ option, which restricts which
     # messages they can receive. It takes a regexp as an option.
@@ -269,7 +269,8 @@ class DripDrop
     end
 
     # Catch all error handler
-    def error_handler(e)
+    # Global to all DripDrop Nodes
+    def self.error_handler(e)
       $stderr.write "#{e.class}: #{e.message}\n\t#{e.backtrace.join("\n\t")}"
     end
 

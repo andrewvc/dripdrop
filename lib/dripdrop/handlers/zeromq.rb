@@ -104,15 +104,19 @@ class DripDrop
     end
 
     def on_readable(socket, messages)
-      case @msg_format
-      when :raw
-        @recv_cbak.call(messages)
-      when :dripdrop
-        raise "Expected message in one part" if messages.length > 1
-        body  = messages.shift.copy_out_string
-        @recv_cbak.call(decode_message(body))
-      else
-        raise "Unknown message format '#{@msg_format}'"
+      begin
+        case @msg_format
+        when :raw
+          @recv_cbak.call(messages)
+        when :dripdrop
+          raise "Expected message in one part" if messages.length > 1
+          body  = messages.shift.copy_out_string
+          @recv_cbak.call(decode_message(body))
+        else
+          raise "Unknown message format '#{@msg_format}'"
+        end
+      rescue StandardError => e
+        handle_error(e)
       end
     end
 
@@ -255,8 +259,12 @@ class DripDrop
     end
 
     def on_readable(socket, messages)
-      # Strip out empty delimiter
-      super(socket, messages[1..-1])
+      begin
+        # Strip out empty delimiter
+        super(socket, messages[1..-1])
+      rescue StandardError => e
+        handle_error(e)
+      end
     end
   end
 end

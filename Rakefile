@@ -13,9 +13,8 @@ begin
     gem.add_dependency('ffi-rzmq', '>= 0.7.1')
     gem.add_dependency('eventmachine', '>= 0.12.10')
     gem.add_dependency('em-websocket')
-    gem.add_dependency('thin')
+    gem.add_dependency('eventmachine_httpserver')
     gem.add_dependency('em-zeromq', '>= 0.1.2')
-    gem.add_dependency('msgpack')
     gem.add_dependency('yajl-ruby')
   end
   Jeweler::GemcutterTasks.new
