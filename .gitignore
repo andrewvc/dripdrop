@@ -13,6 +13,7 @@ tmtags
 ## VIM
 *.swp
 *.swo
+*.swn
 
 ## PROJECT::GENERAL
 coverage
