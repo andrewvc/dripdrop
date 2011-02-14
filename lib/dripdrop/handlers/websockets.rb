@@ -13,7 +13,7 @@ class DripDrop
         #A WebSocketHandler:Connection gets passed to all callbacks 
         dd_conn = Connection.new(ws)
           
-        ws.onopen { @onopen_handler.call(dd_conn) if @onopen_handler }
+        ws.onopen  { @onopen_handler.call(dd_conn) if @onopen_handler }
         ws.onclose { @onclose_handler.call(dd_conn) if @onclose_handler }
         ws.onerror {|reason| @onerror_handler.call(reason, dd_conn) if @onerror_handler }
         
@@ -68,7 +68,8 @@ class DripDrop
     end
 
     def send_message(message)
-      @ws.send(dd_messagify(message).to_hash.to_json)
+      encoded_message = dd_messagify(message).encoded
+      @ws.send(encoded_message)
     end
   end
 end

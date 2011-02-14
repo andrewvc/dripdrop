@@ -30,7 +30,7 @@ describe "websockets" do
       
       EM.defer do
         client = WebSocket.new(addr)
-        open_received = DripDrop::Message.decode_json(client.receive)
+        open_received = DripDrop::Message.decode(client.receive)
         to_send.each do |message|
           client.send(message.json_encoded)
         end
