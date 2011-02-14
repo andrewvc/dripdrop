@@ -20,7 +20,7 @@ class DripDrop
         ws.onmessage do |message|
           if @onmessage_handler
             begin
-              message = DripDrop::Message.decode_json(message) unless @raw
+              message = DripDrop::Message.decode(message) unless @raw
             rescue StandardError => e
               $stderr.write "Could not parse message: #{e.message}" if @debug
             end
