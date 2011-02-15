@@ -79,7 +79,7 @@ class DripDrop
         raise DripDrop::WrongMessageClassError, "Wrong message class '#{klass}', expected '#{self}'"
       end
        
-      self.from_hash(hash)
+      klass ? klass.from_hash(hash) : self.from_hash(hash)
     end
 
     # Parses an already encoded string
