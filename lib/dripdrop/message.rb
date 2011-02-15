@@ -75,8 +75,8 @@ class DripDrop
       raise ArgumentError, "Message missing head: #{hash.inspect}" unless hash['head']
        
       klass = (hash['head'] && hash['head']['message_class']) ? constantize(hash['head']['message_class']) : nil
-      unless (klass == self) || self.subclasses.include?(klass)
-        raise DripDrop::WrongMessageClassError, "Wrong message class #{klass}, expected #{self}" 
+      if klass && (!(klass == self) && !self.subclasses.include?(klass))
+        raise DripDrop::WrongMessageClassError, "Wrong message class '#{klass}', expected '#{self}'"
       end
        
       self.from_hash(hash)

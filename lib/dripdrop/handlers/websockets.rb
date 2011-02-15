@@ -7,9 +7,11 @@ class DripDrop
     attr_reader :ws, :address, :thread
    
     def initialize(address,opts={})
-      @raw    = false #Deal in strings or ZMQ::Message objects
-      host, port = address.host, address.port.to_i
-      @debug = opts[:debug] || false
+      @opts = opts
+      @raw           = false #Deal in strings or ZMQ::Message objects
+      host, port     = address.host, address.port.to_i
+      @message_class = @opts[:message_class] || DripDrop.default_message_class
+      @debug         = @opts[:debug] || false
 
       EventMachine::WebSocket.start(:host => host,:port => port,:debug => @debug) do |ws|
         #A WebSocketHandler:Connection gets passed to all callbacks 
@@ -24,19 +26,19 @@ class DripDrop
           handle_error(e)
         }
         
-        ws.onmessage do |message|
+        ws.onmessage { |message|
           if @onmessage_handler
             begin
-              message = DripDrop::Message.decode(message) unless @raw
+              message = @message_class.decode(message) unless @raw
               @onmessage_handler.call(message,dd_conn)
             rescue StandardError => e
-              handle_error(e)
+              handle_error(e,dd_conn)
             end
           end
-        end
+        }
       end
     end
-    
+
     def on_recv(&block)
       @raw = false
       @onmessage_handler = block

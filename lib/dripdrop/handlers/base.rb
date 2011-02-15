@@ -5,10 +5,10 @@ class DripDrop
       @err_cbak = block
     end
 
-    def handle_error(exception)
+    def handle_error(exception,*extra)
       if @err_cbak
         begin
-          @err_cbak.call(exception)
+          @err_cbak.call(exception,*extra)
         rescue StandardError => e
           print_exception(e)
         end
