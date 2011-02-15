@@ -81,10 +81,14 @@ class DripDrop
           :content => dd_message.encode_json
         )
         req.callback do |response|
-          # Hack to fix evma http
-          response[:content] =~ /(\{.*\})/ 
-          fixed_body = $1
-          block.call(@message_class.decode_json(fixed_body))
+          begin
+            # Hack to fix evma http
+            response[:content] =~ /(\{.*\})/ 
+            fixed_body = $1
+            block.call(@message_class.decode(fixed_body)) if block
+          rescue StandardError => e
+            handle_error(e)
+          end
         end
       else
         raise "Unsupported message type '#{dd_message.class}'"

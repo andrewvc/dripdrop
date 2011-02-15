@@ -14,7 +14,7 @@ DripDrop::Node.new do
     client = http_client(addr)
     msg = DripDrop::Message.new('http/status', :body => "Success #{i}")
     client.send_message(msg) do |resp_msg|
-      puts resp_msg.inspect
+      puts "RESP: #{resp_msg.inspect}"
     end
   end
 
