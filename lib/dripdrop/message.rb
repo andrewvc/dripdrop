@@ -1,5 +1,11 @@
 require 'rubygems'
-require 'yajl'
+
+if PLATFORM == 'java'
+  require 'json'
+else
+  require 'yajl'
+  require 'yajl/json_gem'
+end
 
 class DripDrop
   class WrongMessageClassError < StandardError; end
@@ -40,7 +46,7 @@ class DripDrop
 
     # The encoded message, ready to be sent across the wire via ZMQ
     def encoded
-      Yajl::Encoder.encode self.to_hash
+      self.to_hash.to_json
     end
 
     # (Deprecated) Encodes the hash represntation of the message to JSON
@@ -86,7 +92,7 @@ class DripDrop
     def self.decode(msg)
       return nil if msg.nil? || msg.empty?
 
-      decoded = Yajl::Parser.parse(msg)
+      decoded = JSON.parse(msg)
       self.recreate_message(decoded)
     end
 

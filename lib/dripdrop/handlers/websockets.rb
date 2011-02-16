@@ -1,5 +1,6 @@
 require 'em-websocket'
 
+
 class DripDrop
   class WebSocketHandler < BaseHandler
     class SocketError < StandardError; attr_accessor :reason, :connection end

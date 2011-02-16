@@ -43,7 +43,7 @@ describe DripDrop::Message do
       it "should encode to valid JSON hash without error" do
         enc = @message.encoded
         enc.should be_a(String)
-        Yajl::Parser.parse(enc).should be_a(Hash)
+        JSON.parse(enc).should be_a(Hash)
       end
       it "should decode encoded messages without errors" do
         DripDrop::Message.decode(@message.encoded).should be_a(DripDrop::Message)
