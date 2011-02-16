@@ -10,7 +10,15 @@ require 'dripdrop/node/nodelet'
 require 'dripdrop/handlers/base'
 require 'dripdrop/handlers/zeromq'
 require 'dripdrop/handlers/websockets'
-require 'dripdrop/handlers/http'
+require 'dripdrop/handlers/http_client'
+
+begin
+  require 'dripdrop/handlers/http_server'
+rescue LoadError => e
+  $stderr.write "Could not load http server, your probably don't have eventmachine_httpserver installed\n"
+  $stderr.write e.message + "\n"
+  $stderr.write e.backtrace.join("\t\n")
+end
 
 class DripDrop
   class Node
