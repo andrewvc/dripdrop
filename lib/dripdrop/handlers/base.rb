@@ -13,21 +13,24 @@ class DripDrop
           print_exception(e)
         end
       else
-        print_exception(e)
+        print_exception(exception)
       end
     end
 
     def print_exception(exception)
-      $stderr.write exception.message
-      $stderr.write exception.backtrace.join("\t\n")
+      if exception.is_a?(Exception)
+        $stderr.write exception.message
+        $stderr.write exception.backtrace.join("\t\n")
+      else
+        $stderr.write "Expected an exception, got: #{exception.inspect}"
+      end
     end
      
     private
     # Normalize Hash objs and DripDrop::Message objs into DripDrop::Message objs
-    def dd_messagify(message)
+    def dd_messagify(message,klass=DripDrop::Message)
       if message.is_a?(Hash)
-        return DripDrop::Message.new(message[:name], :head => message[:head],
-                                                     :body => message[:body])
+        return klass.from_hash(message)
       elsif message.is_a?(DripDrop::Message)
         return message
       else

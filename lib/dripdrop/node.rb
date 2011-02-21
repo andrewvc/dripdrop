@@ -15,22 +15,22 @@ require 'dripdrop/handlers/http_client'
 begin
   require 'dripdrop/handlers/http_server'
 rescue LoadError => e
-  $stderr.write "Could not load http server, your probably don't have eventmachine_httpserver installed\n"
-  $stderr.write e.message + "\n"
-  $stderr.write e.backtrace.join("\t\n")
+  $stderr.write "Warning, could not load http server, your probably don't have eventmachine_httpserver installed\n"
 end
 
 class DripDrop
   class Node
     ZCTX = ZMQ::Context.new 1
     
-    attr_reader   :zm_reactor, :routing, :nodelets
+    attr_reader   :zm_reactor, :routing, :nodelets, :run_list
     attr_accessor :debug
     
     def initialize(opts={},&block)
       @block      = block
       @thread     = nil # Thread containing the reactors
       @routing    = {}  # Routing table
+      @run_list   = opts['run_list'] || opts[:run_list] || nil  #List of nodelets to run
+      @run_list   = @run_list.map(&:to_sym) if @run_list
       @debug      = opts[:debug]
       @recipients_for       = {}
       @handler_default_opts = {:debug => @debug}
@@ -146,8 +146,26 @@ class DripDrop
     #
     # If you specify a block, Nodelet#action will be ignored and the block
     # will be run
+    # 
+    # Nodelets are made available as instance methods on the current DripDrop::Nodelet
+    # Object, so the following works as well:
+    #
+    #    nodelet :mynodelet
+    #    
+    #    mynodelet.route :route_name, :zmq_xreq, 'tcp://127.0.0.1:2000', ;bind
     def nodelet(name,klass=Nodelet,*configure_args,&block)
+      # If there's a run list, only run nodes in that list
+      return nil if @run_list && !@run_list.include?(name.to_sym)
+       
       nlet = @nodelets[name] ||= klass.new(self,name,*configure_args)
+      
+      # Define a method returning the nodelet in the current node
+      unless respond_to?(name)
+       (class << self; self; end).class_eval do
+          define_method(name) { nlet }
+        end
+      end
+       
       if block
         block.call(nlet)
       else

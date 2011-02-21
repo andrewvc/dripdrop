@@ -82,7 +82,7 @@ class DripDrop
        
       klass = (hash['head'] && hash['head']['message_class']) ? constantize(hash['head']['message_class']) : nil
       if klass && (!(klass == self) && !self.subclasses.include?(klass))
-        raise DripDrop::WrongMessageClassError, "Wrong message class '#{klass}', expected '#{self}'"
+        raise DripDrop::WrongMessageClassError, "Wrong message class '#{klass}', expected '#{self}' for message #{hash.inspect}"
       end
        
       klass ? klass.from_hash(hash) : self.from_hash(hash)

@@ -72,8 +72,12 @@ class DripDrop
     end
 
     def send_message(message)
-      encoded_message = dd_messagify(message).encoded
-      @ws.send(encoded_message)
+      begin
+        encoded_message = dd_messagify(message).encoded
+        @ws.send(encoded_message)
+      rescue StandardError => e
+        handle_error(e)
+      end
     end
   end
 end

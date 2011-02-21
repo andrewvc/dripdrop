@@ -18,6 +18,7 @@ class DripDrop
       @opts         = opts
       @connection   = nil
       @msg_format   = opts[:msg_format] || :dripdrop
+      @message_class = @opts[:message_class] || DripDrop.default_message_class
     end
 
     def on_recv(msg_format=:dripdrop,&block)
@@ -86,19 +87,16 @@ class DripDrop
         # Not sure why this is necessary, this is likely a bug in em-zeromq
         on_writable(@connection.socket)
       else
-        on_writable(@connection.socket)
+        EM::next_tick {
+          on_writable(@connection.socket)
+        }
       end
     end
   end
 
   module ZMQReadableHandler
     attr_accessor :message_class
-
-    def initialize(*args)
-      super(*args)
-      @message_class = @opts[:message_class] || DripDrop.default_message_class
-    end
-
+     
     def decode_message(msg)
       @message_class.decode(msg)
     end
@@ -109,7 +107,10 @@ class DripDrop
         when :raw
           @recv_cbak.call(messages)
         when :dripdrop
-          raise "Expected message in one part" if messages.length > 1
+          if messages.length > 1
+            raise "Expected message in one part for #{self.inspect}, got #{messages.map(&:copy_out_string)}"
+          end
+          
           body  = messages.shift.copy_out_string
           @recv_cbak.call(decode_message(body))
         else
@@ -136,17 +137,21 @@ class DripDrop
     end
 
     def on_readable(socket, messages)
-      if @msg_format == :dripdrop
-        unless messages.length == 2
-          return false
+      begin
+        if @msg_format == :dripdrop
+          unless messages.length == 2
+            return false
+          end
+          topic = messages.shift.copy_out_string
+          if @topic_filter.nil? || topic.match(@topic_filter)
+            body  = messages.shift.copy_out_string
+            @recv_cbak.call(decode_message(body))
+          end
+        else
+          super(socket,messages)
         end
-        topic = messages.shift.copy_out_string
-        if @topic_filter.nil? || topic.match(@topic_filter)
-          body  = messages.shift.copy_out_string
-          @recv_cbak.call(decode_message(body))
-        end
-      else
-        super(socket,messages)
+      rescue StandardError => e
+        handle_error(e)
       end
     end
 
@@ -161,7 +166,7 @@ class DripDrop
 
     #Sends a message along
     def send_message(message)
-      dd_message = dd_messagify(message)
+      dd_message = dd_messagify(message,@message_class)
       if dd_message.is_a?(DripDrop::Message)
         super([dd_message.name, dd_message.encoded])
       else
@@ -190,12 +195,21 @@ class DripDrop
 
     def on_readable(socket,messages)
       if @msg_format == :dripdrop
-        identities = messages[0..-2].map {|m| m.copy_out_string}
-        body       = messages.last.copy_out_string
-        message    = decode_message(body)
-        seq        = message.head[SEQ_CTR_KEY]
-        response   = ZMQXRepHandler::Response.new(self, identities,seq)
-        @recv_cbak.call(message,response)
+        begin
+          if messages.length < 3
+            raise "Expected message in at least 3 parts, got #{messages.map(&:copy_out_string).inspect}"
+          end
+          identities = messages[0..-2].map {|m| m.copy_out_string}
+          body       = messages.last.copy_out_string
+          raise "Received xreq message with no body!" unless body
+          message    = decode_message(body)
+          raise "Received nil message! #{body}" unless message
+          seq        = message.head[SEQ_CTR_KEY]
+          response   = ZMQXRepHandler::Response.new(self,identities,seq,@message_class)
+          @recv_cbak.call(message,response) if @recv_cbak
+        rescue StandardError => e
+          handle_error(e)
+        end
       else
         super(socket,messages)
       end
@@ -217,14 +231,15 @@ class DripDrop
   class ZMQXRepHandler::Response < ZMQBaseHandler
     attr_accessor :xrep, :seq, :identities
     
-    def initialize(xrep,identities,seq)
+    def initialize(xrep,identities,seq,message_class)
       @xrep = xrep
       @seq  = seq
-      @identities = identities
+      @identities    = identities
+      @message_class = message_class
     end
     
     def send_message(message)
-      dd_message = dd_messagify(message)
+      dd_message = dd_messagify(message,@message_class)
       @xrep.send_message(dd_message,identities,seq)
     end
   end
@@ -240,20 +255,28 @@ class DripDrop
       @promises = {}
 
       self.on_recv do |message|
-        seq = message.head[SEQ_CTR_KEY]
-        raise "Missing Seq Counter" unless seq
-        promise = @promises.delete(seq)
-        promise.call(message) if promise
+        begin
+          seq = message.head[SEQ_CTR_KEY]
+          raise "Missing Seq Counter" unless seq
+          promise = @promises.delete(seq)
+          promise.call(message) if promise
+        rescue StandardError => e
+          handle_error(e)
+        end
       end
     end
 
     def send_message(message,&block)
-      dd_message = dd_messagify(message)
-      if dd_message.is_a?(DripDrop::Message)
-        @seq_counter += 1
-        dd_message.head[SEQ_CTR_KEY] = @seq_counter
-        @promises[@seq_counter] = block if block
-        message = dd_message
+      begin
+        dd_message = dd_messagify(message,@message_class)
+        if dd_message.is_a?(DripDrop::Message)
+          @seq_counter += 1
+          dd_message.head[SEQ_CTR_KEY] = @seq_counter
+          @promises[@seq_counter] = block if block
+          message = dd_message
+        end
+      rescue StandardError => e
+        handle_error(e)
       end
       super(message)
     end
