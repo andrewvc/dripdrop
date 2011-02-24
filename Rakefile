@@ -14,6 +14,7 @@ begin
     gem.add_dependency('eventmachine', '>= 0.12.10')
     gem.add_dependency('em-websocket')
     gem.add_dependency('em-zeromq', '>= 0.1.2')
+    gem.add_development_dependency('rspec', '>= 2.4.0')
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError
@@ -33,3 +34,8 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
+
+require 'rspec/core/rake_task'
+RSpec::Core::RakeTask.new(:spec) do |t|
+end
+
