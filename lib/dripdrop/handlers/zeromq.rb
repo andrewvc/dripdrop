@@ -199,8 +199,30 @@ class DripDrop
           if messages.length < 3
             raise "Expected message in at least 3 parts, got #{messages.map(&:copy_out_string).inspect}"
           end
-          identities = messages[0..-2].map {|m| m.copy_out_string}
-          body       = messages.last.copy_out_string
+           
+          message_strings = messages.map(&:copy_out_string)
+          
+          # parse the message into identities, delimiter and body
+          identities = []
+          delimiter  = nil
+          body       = nil
+          # It's an identitiy if it isn't an empty string
+          # Once we hit the delimiter, we know the rest after is the body
+          message_strings.each_with_index do |ms,i|
+            unless ms.empty?
+              identities << ms
+            else
+              delimiter = ms
+               
+              unless message_strings.length == i+2
+                raise "Expected body in 1 part got '#{message_strings.inspect}'"
+              end
+               
+              body  = message_strings[i+1]
+              break
+            end
+          end
+          
           raise "Received xreq message with no body!" unless body
           message    = decode_message(body)
           raise "Received nil message! #{body}" unless message
@@ -278,7 +300,7 @@ class DripDrop
       rescue StandardError => e
         handle_error(e)
       end
-      super(message)
+      super(['', message.encoded])
     end
 
     def on_readable(socket, messages)

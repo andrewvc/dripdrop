@@ -42,7 +42,10 @@ class DripDrop
     # This is non-blocking.
     def start
       @thread = Thread.new do
-        EM.error_handler {|e| self.error_handler e}
+        if respond_to?(:error_handler)
+          EM.error_handler {|e| self.error_handler e}
+        end
+         
         EM.run { action }
       end
     end
