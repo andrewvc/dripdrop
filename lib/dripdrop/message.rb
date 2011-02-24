@@ -1,6 +1,6 @@
 require 'rubygems'
 
-if PLATFORM == 'java'
+if RUBY_PLATFORM == 'java'
   require 'json'
 else
   require 'yajl'
