@@ -25,3 +25,4 @@ pkg
 *.rbc
 
 ## PROJECT::SPECIFIC
+.rvmrc
