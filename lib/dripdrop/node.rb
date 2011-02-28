@@ -9,8 +9,8 @@ require 'dripdrop/message'
 require 'dripdrop/node/nodelet'
 require 'dripdrop/handlers/base'
 require 'dripdrop/handlers/zeromq'
-require 'dripdrop/handlers/websockets'
 #require 'dripdrop/handlers/mongrel2'
+require 'dripdrop/handlers/websocket_server'
 require 'dripdrop/handlers/http_client'
 
 begin
