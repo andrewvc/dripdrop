@@ -48,7 +48,7 @@ Let's start by looking at the normalized communication interface in a simple app
     end
      
     #Start the app and block
-    MyApp.start!
+    MyApp.new.start!
 
 What we've done here is use HTTP as a simple messaging protocol. Yes, we've thrown out a good chunk of what HTTP does, but consider this, that exact same code would work if we replaced the top two lines with:
 
@@ -67,7 +67,7 @@ That replaces the HTTP server and client with ultra-high performance zeromq sock
 
 The tools mentioned above are useful, but if you try and build a larger app you'll quickly find them lacking. The callbacks get tricky, and mixing your logic up in a single #action method becomes messy. That's why we have nodelets in DripDrop. Here's a trivial example.
 
-    class MyApp < DripDrop::Node.new
+    class MyApp < DripDrop::Node
       # This will instantiate a new StatsCollector object, and define the
       # stats_raw and stats_filtered methods inside it.
       nodelet :stats_collector, StatsCollector do |nodelet|
@@ -110,7 +110,7 @@ The tools mentioned above are useful, but if you try and build a larger app you'
       end
     end
     
-    MyApp.start!
+    MyApp.new.start!
 
 # Custom Messages
 
@@ -151,7 +151,7 @@ While you will have to write your own executable wrappers suitable for your own 
 
     # Only starts :service_two, the setup for :service_one
     # is skipped as well
-    MyApp.new(:run_list => [:service_two])
+    MyApp.new(:run_list => [:service_two]).start!
 
 #RDocs
 
@@ -161,4 +161,4 @@ RDocs can be found [here](http://www.rdoc.info/github/andrewvc/dripdrop/master/f
 
 * Andrew Cholakian: [andrewvc](http://github.com/andrewvc)
 * John W Higgins: [wishdev](http://github.com/wishdev)
-* Nick Recobra: [orouen](https://github.com/oruen)
+* Nick Recobra: [oruen](https://github.com/oruen)
