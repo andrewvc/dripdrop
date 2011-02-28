@@ -3,9 +3,10 @@
 ## INSTALLATION NOTES:
 
 1. Build the gem for git HEAD. DripDrop is under heavy development, you probably want the latest changes. We try not to break stuff in master, and deprecate features prior to removal.
-2. Build eventmachine from [git](https://github.com/eventmachine/eventmachine). It fixes a ZeroMQ bug that will cause you much pain if you don't have it.
-3. You probably want the yajl-ruby (or json-java if you're on jRuby) gem installed for optimal JSON generation. You don't have to use JSON with DripDrop, but it is the default.
-4. If you have any problems, open an issue, a lot of stuff is in flux!
+2. Build eventmachine from [git master](https://github.com/eventmachine/eventmachine). It fixes a ZeroMQ bug that will cause you much pain if you don't have it.
+3. Build zeromq2 from [git master](https://github.com/zeromq/zeromq2)
+4. You probably want the yajl-ruby (or json-java if you're on jRuby) gem installed for optimal JSON generation. You don't have to use JSON with DripDrop, but it is the default.
+5. If you have any problems, open an issue, a lot of stuff is in flux!
 
 ## About
 
