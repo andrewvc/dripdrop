@@ -7,7 +7,7 @@ describe "zmq push/pull" do
     push = nil
     pull = nil
     
-    @node = run_reactor do
+    @node = run_reactor(2) do
       addr = rand_addr
       
       push = zmq_push(addr, :bind)
@@ -25,6 +25,8 @@ describe "zmq push/pull" do
         responses << message
       end
        
+      sleep 1
+
       to_send.each {|message| push.send_message(message)}
     end
      
