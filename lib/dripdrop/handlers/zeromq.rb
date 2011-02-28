@@ -12,7 +12,7 @@ class DripDrop
   end
 
   class ZMQBaseHandler < BaseHandler
-    attr_accessor :connection
+    attr_reader :connection
 
     def initialize(opts={})
       @opts         = opts
@@ -21,8 +21,19 @@ class DripDrop
       @message_class = @opts[:message_class] || DripDrop.default_message_class
     end
 
+    def add_connection(connection)
+      @connection = connection
+    end
+
+    def read_connection
+      @connection
+    end
+
+    def write_connection
+      @connection
+    end
+
     def on_recv(msg_format=:dripdrop,&block)
-      @msg_format = msg_format
       @recv_cbak = block
       self
     end
@@ -65,18 +76,12 @@ class DripDrop
       else
         @send_queue.push([message])
       end
-        
       
-      if @send_queue_enabled
-        @connection.register_writable
+      self.write_connection.register_writable if @send_queue_enabled
          
-        # Not sure why this is necessary, this is likely a bug in em-zeromq
-        on_writable(@connection)
-      else
-        EM::next_tick {
-          on_writable(@connection)
-        }
-      end
+      EM::next_tick {
+        on_writable(self.write_connection)
+      }
     end
   end
 
@@ -105,10 +110,6 @@ class DripDrop
       rescue StandardError => e
         handle_error(e)
       end
-    end
-
-    def post_setup
-      @connection.register_readable
     end
   end
 
@@ -163,8 +164,6 @@ class DripDrop
 
   class ZMQPullHandler < ZMQBaseHandler
     include ZMQReadableHandler
-
-
   end
 
   class ZMQPushHandler < ZMQBaseHandler

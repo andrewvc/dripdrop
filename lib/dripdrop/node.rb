@@ -10,6 +10,7 @@ require 'dripdrop/node/nodelet'
 require 'dripdrop/handlers/base'
 require 'dripdrop/handlers/zeromq'
 require 'dripdrop/handlers/websockets'
+require 'dripdrop/handlers/mongrel2'
 require 'dripdrop/handlers/http_client'
 
 begin
@@ -174,6 +175,10 @@ class DripDrop
       nlet
     end
     
+    def zmq_m2(addresses, opts={}, &block)
+      zmq_handler(DripDrop::Mongrel2Handler, [ZMQ::PULL, ZMQ::PUB], addresses, [:connect, :connect], opts)
+    end
+
     # Creates a ZMQ::SUB type socket. Can only receive messages via +on_recv+.
     # zmq_subscribe sockets have a +topic_filter+ option, which restricts which
     # messages they can receive. It takes a regexp as an option.
@@ -309,22 +314,32 @@ class DripDrop
     private
      
     def zmq_handler(klass, sock_type, address, socket_ctype, opts={})
-      addr_uri = URI.parse(address)
-      
-      host_str = addr_uri.host
-      #if addr_uri.scheme == 'tcp'  
-      #  host = Resolv.getaddresses(addr_uri.host).first
-      #  host_addr = Resolv.getaddresses('localhost').map {|a| IPAddr.new(a)}.find {|a| a.ipv4?}
-      #  host_str  = host_addr.ipv6? ? "[#{host_addr.to_s}]" : host_addr.to_s
-      #else
-      #  host_str = addr_uri.host
-      #end
+      h_opts = handler_opts_given(opts)
 
-      z_addr      =  "#{addr_uri.scheme}://#{host_str}:#{addr_uri.port.to_i}"
-      h_opts      = handler_opts_given(opts)
-      connection = EM::ZeroMQ::Context.new(@zctx).create sock_type, socket_ctype, z_addr, klass.new(h_opts)
-      handler            = connection.handler
-      handler.connection = connection
+      sock_type = [sock_type].flatten
+      address = [address].flatten
+      socket_ctype = [socket_ctype].flatten
+
+      handler = klass.new(h_opts)
+
+      sock_type.length.times do |index|
+        addr_uri = URI.parse(address[index])
+
+        host_str = addr_uri.host
+        #if addr_uri.scheme == 'tcp'
+        #  host = Resolv.getaddresses(addr_uri.host).first
+        #  host_addr = Resolv.getaddresses('localhost').map {|a| IPAddr.new(a)}.find {|a| a.ipv4?}
+        #  host_str  = host_addr.ipv6? ? "[#{host_addr.to_s}]" : host_addr.to_s
+        #else
+        #  host_str = addr_uri.host
+        #end
+
+        z_addr = "#{addr_uri.scheme}://#{host_str}:#{addr_uri.port.to_i}"
+
+        connection = EM::ZeroMQ::Context.new(@zctx).create sock_type[index], socket_ctype[index], z_addr, handler
+        handler.add_connection connection
+      end
+
       handler.post_setup
       handler
     end   
