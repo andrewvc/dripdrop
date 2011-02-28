@@ -17,7 +17,7 @@ describe "websockets" do
     @node = run_reactor(2) do
       addr = rand_addr('ws')
       
-      server = websocket(addr)
+      server = websocket_server(addr)
       server.on_open do |conn|
         conn.send_message(open_message)
         seen_signatures << conn.signature

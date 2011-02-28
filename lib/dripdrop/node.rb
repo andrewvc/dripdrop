@@ -217,11 +217,11 @@ class DripDrop
       zmq_handler(DripDrop::ZMQXReqHandler,ZMQ::XREQ,address,socket_ctype,opts)
     end
 
-    # Binds an EM websocket connection to +address+. takes blocks for
+    # Binds an EM websocket server connection to +address+. takes blocks for
     # +on_open+, +on_recv+, +on_close+ and +on_error+.
     #
     # For example +on_recv+ could be used to echo incoming messages thusly:
-    #    websocket(addr).on_open {|conn|
+    #    websocket_server(addr).on_open {|conn|
     #      ws.send_message(:name => 'ws_open_ack')
     #    }.on_recv {|msg,conn|
     #      conn.send(msg)
@@ -231,10 +231,16 @@ class DripDrop
     #
     # The +ws+ object that's passed into the handlers is not
     # the +DripDrop::WebSocketHandler+ object, but an em-websocket object.
-    def websocket(address,opts={})
+    def websocket_server(address,opts={})
       uri     = URI.parse(address)
       h_opts  = handler_opts_given(opts)
       DripDrop::WebSocketHandler.new(uri,h_opts)
+    end
+    
+    # DEPRECATED: Use websocket_server
+    def websocket(*args)
+      $stderr.write "DripDrop#websocket handler is deprecated, use DripDrop#websocket_server"
+      websocket_server(*args)
     end
     
     # Starts a new Thin HTTP server listening on address.

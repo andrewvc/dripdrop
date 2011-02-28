@@ -8,40 +8,30 @@ class ComplexExample < DripDrop::Node
   end
   
   def action
-    if [:all, :websockets].include?(@mode)
-      route :ws_listener,  :websocket, 'ws://127.0.0.1:8080'
-      route :broadcast_in, :zmq_subscribe, 'tcp://127.0.0.1:2200', :connect
-      route :reqs_out,     :zmq_xreq,      'tcp://127.0.0.1:2201', :connect
-      
-      WSListener.new(:ws => ws_listener, :broadcast_in => broadcast_in, :reqs_out => reqs_out).run
+    nodelet :ws_listener, WSListener do |n|
+      n.route :ws_listener,  :websocket, 'ws://127.0.0.1:8080'
+      n.route :broadcast_in, :zmq_subscribe, 'tcp://127.0.0.1:2200', :connect
+      n.route :reqs_out,     :zmq_xreq,      'tcp://127.0.0.1:2201', :connect
     end
-    
-    if [:all, :coordinator].include?(@mode)
-      route :broadcast_out, :zmq_publish, 'tcp://127.0.0.1:2200', :bind
-      route :reqs_in,       :zmq_xrep,    'tcp://127.0.0.1:2201', :bind
-      route :reqs_htout,    :http_client, 'tcp://127.0.0.1:3000/endpoint'
       
-      Coordinator.new(:broadcast_out => broadcast_out, :reqs_in => reqs_in, :reqs_htout => reqs_htout).run
+    nodelet :coordinator, Coordinator do |n|
+      n.route :broadcast_out, :zmq_publish, 'tcp://127.0.0.1:2200', :bind
+      n.route :reqs_in,       :zmq_xrep,    'tcp://127.0.0.1:2201', :bind
+      n.route :reqs_htout,    :http_client, 'tcp://127.0.0.1:3000/endpoint'
     end
   end
 end
 
-class Coordinator
-  def initialize(opts={})
-    @bc_out  = opts[:broadcast_out]
-    @reqs_in = opts[:reqs_in]
-    @reqs_htout = opts[:reqs_htout]
-  end
-  
+class Coordinator < DripDrop::Node::Nodelet
   def run
     proxy_reqs
     heartbeat
   end
 
   def proxy_reqs
-    @reqs_in.on_recv do |message, response|
+    reqs_in.on_recv do |message, response|
       puts "Proxying #{message.inspect} to htout"
-      @reqs_htout.send_message(message) do |http_response|
+      reqs_htout.send_message(message) do |http_response|
         puts "Received http response #{http_response.inspect} sending back"
         response.send_message(http_response)
       end
@@ -50,18 +40,17 @@ class Coordinator
   
   def heartbeat
     EM::PeriodicTimer.new(1) do
-      @bc_out.send_message :name => 'tick', :body => Time.now.to_s
+      broadcast_out.send_message :name => 'tick', :body => Time.now.to_s
     end
   end
 end
 
-class WSListener
-  def initialize(opts={})
-    @ws       = opts[:ws]
-    @bc_in    = opts[:broadcast_in]
-    @reqs_out = opts[:reqs_out]
+class WSListener < DripDrop::Node::Nodelet
+  def initialize(*args)
+    super
     @client_channel = EM::Channel.new
   end
+  
   def run
     proxy_websockets
     broadcast_to_websockets
@@ -69,15 +58,13 @@ class WSListener
 
   def broadcast_to_websockets
     # Receives messages from Broadcast Out
-    @bc_in.on_recv do |message|
+    broadcast_in.on_recv do |message|
       puts "Broadcast In recv: #{message.inspect}"
       @client_channel.push(message)
     end
   end
 
   def proxy_websockets
-    ws = @ws
-    
     sigs_sids = {} #Map connection signatures to subscriber IDs
      
     ws.on_open do |conn|
@@ -102,7 +89,7 @@ class WSListener
 
     ws.on_recv do |message,conn|
       puts "WS Recv #{message.name}"
-      @reqs_out.send_message(message) do |resp_message|
+      reqs_out.send_message(message) do |resp_message|
         puts "Recvd resp_message #{resp_message.inspect}, sending back to client"
         conn.send_message(resp_message)
       end
