@@ -19,7 +19,6 @@ DripDrop helps in these ways:
   3. A simple, yet powerful messaging class, that lets you control the structure, formatting, and serialization of messages sent between nodelets.
   4. Tools to break your nodelets off when it comes time to deploy, letting you scale your app by delegating roles and scaling out resources
 
-
 ## Normalized Interfaces
 
 Let's start by looking at the normalized communication interface in a simple app.
