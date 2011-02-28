@@ -42,27 +42,13 @@ class DripDrop
       @send_queue_enabled = false
     end
 
-    def on_writable(socket)
+    def on_writable(conn)
       unless @send_queue.empty?
         message = @send_queue.shift
 
-        num_parts = message.length
-        message.each_with_index do |part,i|
-          # Set the multi-part flag unless this is the last message
-          flags = (i + 1 < num_parts ? ZMQ::SNDMORE : 0) | ZMQ::NOBLOCK
-
-          if part.class == ZMQ::Message
-            socket.send(part, flags)
-          else
-            if part.class == String
-              socket.send_string(part, flags)
-            else
-              $stderr.write "Can only send Strings, not #{part.class}: #{part}" if @debug
-            end
-          end
-        end
+        conn.send_msg(*message)
       else
-        @connection.deregister_writable if @send_queue_enabled
+        conn.deregister_writable if @send_queue_enabled
       end
     end
 
@@ -85,10 +71,10 @@ class DripDrop
         @connection.register_writable
          
         # Not sure why this is necessary, this is likely a bug in em-zeromq
-        on_writable(@connection.socket)
+        on_writable(@connection)
       else
         EM::next_tick {
-          on_writable(@connection.socket)
+          on_writable(@connection)
         }
       end
     end
