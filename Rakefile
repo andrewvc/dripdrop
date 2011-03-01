@@ -10,10 +10,9 @@ begin
     gem.email = "andrew@andrewvc.com"
     gem.homepage = "http://github.com/andrewvc/dripdrop"
     gem.authors = ["Andrew Cholakian"]
-    gem.add_dependency('ffi-rzmq', '>= 0.7.1')
     gem.add_dependency('eventmachine', '>= 0.12.10')
     gem.add_dependency('em-websocket')
-    gem.add_dependency('em-zeromq', '>= 0.1.2')
+    gem.add_dependency('em-zeromq', '>= 0.2.0')
     gem.add_development_dependency('rspec', '>= 2.4.0')
   end
   Jeweler::GemcutterTasks.new
