@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
     s.add_dependency "json", ">= 1.5.1" 
   else
     s.add_dependency "yajl-ruby", ">= 0.8.1"
+    s.add_dependency "eventmachine_httpserver", ">= 0.2.1"
   end
   s.add_development_dependency "rspec", ">= 2.4.0"
 
