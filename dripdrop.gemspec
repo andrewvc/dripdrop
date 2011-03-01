@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dripdrop}
-  s.version = "0.10.0.beta1"
+  s.version = "0.10.0.beta2"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Andrew Cholakian"]
-  s.date = %q{2011-02-28}
+  s.date = %q{2011-03-01}
   s.description = %q{Evented framework for ZeroMQ and EventMachine Apps. }
   s.email = %q{andrew@andrewvc.com}
   s.extra_rdoc_files = [
@@ -22,7 +22,6 @@ Gem::Specification.new do |s|
     "README.md",
     "Rakefile",
     "VERSION",
-    "doc_img/topology.png",
     "dripdrop.gemspec",
     "example/agent_test.rb",
     "example/combined.rb",
@@ -65,7 +64,7 @@ Gem::Specification.new do |s|
   ]
   s.homepage = %q{http://github.com/andrewvc/dripdrop}
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.5.0}
+  s.rubygems_version = %q{1.5.3}
   s.summary = %q{Evented framework for ZeroMQ and EventMachine Apps.}
   s.test_files = [
     "spec/gimite-websocket.rb",
@@ -85,17 +84,20 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<eventmachine>, [">= 0.12.10"])
       s.add_runtime_dependency(%q<em-websocket>, [">= 0"])
-      s.add_runtime_dependency(%q<em-zeromq>, [">= 0.2.0.beta1"])
+      s.add_runtime_dependency(%q<em-zeromq>, [">= 0.2.0"])
       s.add_development_dependency(%q<rspec>, [">= 2.4.0"])
     else
+      s.add_dependency(%q<eventmachine>, [">= 0.12.10"])
       s.add_dependency(%q<em-websocket>, [">= 0"])
-      s.add_dependency(%q<em-zeromq>, [">= 0.2.0.beta1"])
+      s.add_dependency(%q<em-zeromq>, [">= 0.2.0"])
       s.add_dependency(%q<rspec>, [">= 2.4.0"])
     end
   else
+    s.add_dependency(%q<eventmachine>, [">= 0.12.10"])
     s.add_dependency(%q<em-websocket>, [">= 0"])
-    s.add_dependency(%q<em-zeromq>, [">= 0.2.0.beta1"])
+    s.add_dependency(%q<em-zeromq>, [">= 0.2.0"])
     s.add_dependency(%q<rspec>, [">= 2.4.0"])
   end
 end
