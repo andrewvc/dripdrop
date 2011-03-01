@@ -5,7 +5,7 @@ require "dripdrop/version"
 Gem::Specification.new do |s|
   s.name        = "dripdrop"
   s.version     = DripDrop::VERSION
-  s.platform    = Gem::Platform::RUBY
+  s.platform    = Gem::Platform::CURRENT
   s.authors     = ["Andrew Cholakian"]
   s.email       = ["andrew@andrewvc.com"]
   s.homepage    = "https://github.com/andrewvc/dripdrop"
@@ -21,6 +21,11 @@ Gem::Specification.new do |s|
   s.add_dependency "eventmachine", ">= 0.12.10"
   s.add_dependency "em-websocket", ">= 0"
   s.add_dependency "em-zeromq", ">= 0.2.0"
+  if s.platform.os == "java"
+    s.add_dependency "json", ">= 1.5.1" 
+  else
+    s.add_dependency "yajl-ruby", ">= 0.8.1"
+  end
   s.add_development_dependency "rspec", ">= 2.4.0"
 
   s.files         = `git ls-files`.split("\n")
