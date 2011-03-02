@@ -26,3 +26,6 @@ pkg
 
 ## PROJECT::SPECIFIC
 .rvmrc
+Gemfile.lock
+.bundle
+*.gem
