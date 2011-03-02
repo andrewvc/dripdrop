@@ -21,10 +21,13 @@ class DripDrop
         ws.onopen  { @onopen_handler.call(dd_conn) if @onopen_handler }
         ws.onclose { @onclose_handler.call(dd_conn) if @onclose_handler }
         ws.onerror {|reason|
-          e = SocketError.new
-          e.reason     = reason
-          e.connection = dd_conn
-          handle_error(e)
+          begin
+            raise SocketError, reason
+          rescue SocketError => e
+            e.reason     = reason
+            e.connection = dd_conn
+            handle_error(e,dd_conn)
+          end
         }
         
         ws.onmessage { |message|
