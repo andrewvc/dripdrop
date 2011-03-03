@@ -65,7 +65,7 @@ class DripDrop
       if @block
         self.instance_eval(&@block)
       else
-        raise "Could not start, no block or specified"
+        raise "Could not start, no block or action specified"
       end
     end
 
