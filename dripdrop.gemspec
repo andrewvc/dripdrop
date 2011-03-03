@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "eventmachine", ">= 0.12.10"
   s.add_dependency "em-websocket", ">= 0"
-  s.add_dependency "em-zeromq", ">= 0.2.0"
+  s.add_dependency "em-zeromq", ">= 0.2.1"
   if s.platform.to_s == "java"
     s.add_dependency "json", ">= 1.5.1" 
   else
