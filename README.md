@@ -4,7 +4,8 @@
 
 1. Build zeromq2 from [git master](https://github.com/zeromq/zeromq2) if you haven't already.
 2. Install with 'gem install dripdrop --pre' as you probably want the beta gem.
-3. If you have any problems, open an issue, a lot of stuff is in flux!
+3. If on jRuby, http servers will be unavailable unless you have a jruby with cext support, and manually `gem install eventmachine_httpserver`
+4. If you have any problems, open an issue, a lot of stuff is in flux!
 
 ## About
 

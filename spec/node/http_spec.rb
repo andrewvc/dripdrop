@@ -2,6 +2,7 @@ require 'spec_helper'
 
 require 'set'
 
+if defined?(EM::HttpServer)
 describe "http" do
   
   def http_send_messages(to_send,addr=rand_addr('http'),&block)
@@ -72,4 +73,5 @@ describe "http" do
     before(:all) { @http_test_addr = rand_addr('http') + '/subdir' }
     it_should_behave_like "all http nodes"
   end
+end
 end
