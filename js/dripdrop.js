@@ -56,7 +56,7 @@ function DripDrop() {
   };
    
   /* A DripDrop friendly HTTP Request. */
-  this.HTTP = function(url) {
+  this.HTTPClient = function(url) {
     this.url = url;
      
     this.onRecv = function(data) {};
