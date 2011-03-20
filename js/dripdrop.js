@@ -16,7 +16,7 @@ function DripDrop() {
   /* A DripDrop friendly WebSocket Object. 
      This automatically converts messages to DD.Message objects.
      Additionally, this uses friendlier callback methods, closer to the DripDrop
-     server-side API, like onOpen, onRecv, onError, and onClose. */
+     server-side API, like onOpen, onReceive, onError, and onClose. */
   this.WebSocket = function(url) {
     this.socket = new WebSocket(url);
     
@@ -25,7 +25,7 @@ function DripDrop() {
       return this;
     };
     
-    this.onRecv = function(callback) {
+    this.onReceive = function(callback) {
       this.socket.onmessage = function(wsMessage) {
         var json = $.parseJSON(wsMessage.data)
         var message = new DD.Message(json.name, {head: json.head, body: json.body});
@@ -59,11 +59,11 @@ function DripDrop() {
   this.HTTPClient = function(url) {
     this.url = url;
      
-    this.onRecv = function(data) {};
+    this.onReceive = function(data) {};
     this.sendMessage = function() {
       var response = new this.HTTPResponse;
       $.post(this.url, function(json) {
-        this.onRecv(new DD.Message(json.name, {head: json.head, body: json.body}));
+        this.onReceive(new DD.Message(json.name, {head: json.head, body: json.body}));
       });
     };
   };
