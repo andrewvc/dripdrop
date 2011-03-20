@@ -50,10 +50,15 @@ class DripDrop
       @message_class = @opts[:message_class] || DripDrop.default_message_class
     end
     
-    def on_recv(msg_format=:dripdrop_json,&block)
+    def on_receive(msg_format=:dripdrop_json,&block)
       @recv_cbak = block
       @conn = EM.start_server(@uri.host, @uri.port, HTTPEMServer, self)
       self
+    end
+
+    def on_recv(*args,&block)
+      $stderr.write "DripDrop Warning :on_recv is deprecated in favor of :on_receive"
+      on_receive(*args,&block)
     end
   end
 end
