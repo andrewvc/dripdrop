@@ -36,13 +36,13 @@ node = DripDrop::Node.new do
   pull1 = zmq_pull("tcp://127.0.0.1:2201", :connect)
   pull2 = zmq_pull("tcp://127.0.0.1:2202", :connect)
 
-  pull1.on_recv do |msg|
+  pull1.on_receive do |msg|
     puts "Pull 1 #{msg.head.inspect}"
     sleep 1
     push2.send_message(msg)
   end
 
-  pull2.on_recv do |msg|
+  pull2.on_receive do |msg|
     puts "Pull 2 #{msg.head.inspect}"
   end
 

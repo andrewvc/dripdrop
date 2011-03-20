@@ -10,15 +10,15 @@ DripDrop::Node.new do
   route :http_collector, :http_server,   'http://127.0.0.1:8080'
   route :http_agent,     :http_client,   http_collector.address
     
-  stats_sub1.on_recv do |message|
+  stats_sub1.on_receive do |message|
     puts "Receiver 1: #{message.body}"
   end
-  stats_sub2.on_recv do |message|
+  stats_sub2.on_receive do |message|
     puts "Receiver 2: #{message.body}"
   end
   
   i = 0
-  http_collector.on_recv do |message,response|
+  http_collector.on_receive do |message,response|
     i += 1
     stats_pub.send_message(message)
     response.send_message(:name => 'ack', :body => {:seq => i})

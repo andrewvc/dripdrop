@@ -29,7 +29,7 @@ class Coordinator < DripDrop::Node::Nodelet
   end
 
   def proxy_reqs
-    reqs_in.on_recv do |message, response|
+    reqs_in.on_receive do |message, response|
       puts "Proxying #{message.inspect} to htout"
       reqs_htout.send_message(message) do |http_response|
         puts "Received http response #{http_response.inspect} sending back"
@@ -58,7 +58,7 @@ class WSListener < DripDrop::Node::Nodelet
 
   def broadcast_to_websockets
     # Receives messages from Broadcast Out
-    broadcast_in.on_recv do |message|
+    broadcast_in.on_receive do |message|
       puts "Broadcast In recv: #{message.inspect}"
       @client_channel.push(message)
     end
@@ -87,7 +87,7 @@ class WSListener < DripDrop::Node::Nodelet
       @client_channel.unsubscribe sigs_sids[conn.signature]
     end
 
-    ws.on_recv do |message,conn|
+    ws.on_receive do |message,conn|
       puts "WS Recv #{message.name}"
       reqs_out.send_message(message) do |resp_message|
         puts "Recvd resp_message #{resp_message.inspect}, sending back to client"

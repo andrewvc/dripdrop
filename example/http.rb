@@ -5,7 +5,7 @@ DripDrop::Node.new do
   addr = 'http://127.0.0.1:2200'
   
   i = 0 
-  http_server(addr).on_recv do |msg,response|
+  http_server(addr).on_receive do |msg,response|
     i += 1
     response.send_message(msg)
   end

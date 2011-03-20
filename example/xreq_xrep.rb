@@ -5,7 +5,7 @@ DripDrop::Node.new do
   route :xrep_server, :zmq_xrep, 'tcp://127.0.0.1:2200', :bind
   route :xreq_client, :zmq_xreq, xrep_server.address,    :connect
    
-  xrep_server.on_recv do |message,response|
+  xrep_server.on_receive do |message,response|
     puts "REP #{message.body}"
     response.send_message(message)
   end
