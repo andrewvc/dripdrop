@@ -43,10 +43,15 @@ class DripDrop
       end
     end
 
-    def on_recv(&block)
+    def on_receive(&block)
       @raw = false
       @onmessage_handler = block
       self
+    end
+    
+    def on_recv(&block)
+      $stderr.write "DripDrop Warning :on_recv is deprecated in favor of :on_receive"
+      on_receive(&block)
     end
 
     def on_recv_raw(&block)

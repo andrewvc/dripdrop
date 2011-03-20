@@ -21,7 +21,7 @@ describe "websockets" do
       server.on_open do |conn|
         conn.send_message(open_message)
         seen_signatures << conn.signature
-      end.on_recv do |message,conn|
+      end.on_receive do |message,conn|
         received << message
         conn.send_message(message)
       end.on_close do |conn|
