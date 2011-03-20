@@ -16,11 +16,11 @@ describe "zmq push/pull" do
       pull2 = zmq_pull(addr, :connect)
       pull = [pull1, pull2] 
       
-      pull1.on_recv do |message|
+      pull1.on_receive do |message|
         message.head['recv_sock'] = 1
         responses << message
       end
-       pull2.on_recv do |message|
+       pull2.on_receive do |message|
         message.head['recv_sock'] = 2
         responses << message
       end

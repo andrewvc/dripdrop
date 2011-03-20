@@ -38,12 +38,12 @@ describe "zmq m2" do
       
       dd = zmq_m2([addr, addr2])
 
-      dd.on_recv do |req|
+      dd.on_receive do |req|
         requests << req
         dd.reply_http req, "Hello from DripDrop"
       end
 
-      m2_recv.on_recv do |msg|
+      m2_recv.on_receive do |msg|
         responses << msg
       end
 

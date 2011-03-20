@@ -13,7 +13,7 @@ describe "zmq xreq/xrep" do
       rep = zmq_xrep(addr, :bind)
       req = zmq_xreq(addr, :connect)
       
-      rep.on_recv do |message,response|
+      rep.on_receive do |message,response|
         recvd << {:message => message, :response => response}
         
         response.send_message :name => 'response', :body => {'orig_name' => message.name}
@@ -83,7 +83,7 @@ describe "zmq xreq/xrep" do
         req1 = zmq_xreq(addr, :connect)
         req2 = zmq_xreq(addr, :connect)
         
-        rep.on_recv do |message,response|
+        rep.on_receive do |message,response|
           response.send_message(message)
         end
          

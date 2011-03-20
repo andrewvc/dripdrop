@@ -33,9 +33,14 @@ class DripDrop
       @connection
     end
 
-    def on_recv(msg_format=:dripdrop,&block)
+    def on_receive(msg_format=:dripdrop,&block)
       @recv_cbak = block
       self
+    end
+     
+    def on_recv(*args,&block)
+      $stderr.write "DripDrop Warning :on_recv is deprecated in favor of :on_receive"
+      on_receive(*args,&block)
     end
 
     def address
@@ -261,7 +266,8 @@ class DripDrop
       @seq_counter = 0
       @promises = {}
 
-      self.on_recv do |message|
+      # should never be handled by the user
+      self.on_receive do |message|
         begin
           seq = message.head[SEQ_CTR_KEY]
           raise "Missing Seq Counter" unless seq
