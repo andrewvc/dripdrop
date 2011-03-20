@@ -2,9 +2,9 @@
                     "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-  <script src="../jquery.js"></script>
-  <script src="../jquery.json.js"></script>
-  <script src="../dripdrop.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+  <script src="jquery.json.js"></script>
+  <script src="dripdrop.js"></script>
   
   <link rel="stylesheet" href="qunit.css" type="text/css" media="screen" />
   <script type="text/javascript" src="qunit.js"></script>
@@ -15,7 +15,7 @@ $(document).ready(function(){
 
 /* Test Helpers */
 function TSock()  {return new DD.WebSocket('ws://localhost:2702')};
-function THTTP()  {return new DD.HTTP('http://localhost:2703')};
+function THTTP()  {return new DD.HTTPClient('http://localhost:2703')};
 
 //Faked message to for a websocket
 function FakeWSMessage(ddMessage) {
@@ -85,13 +85,13 @@ module("DD.WebSocket");
     });
   });
   
-  test("onRecv should trigger the passed in callback", function() {
+  test("onReceive should trigger the passed in callback", function() {
     expect(3);
     
     var expectedMsg = new DD.Message('foo');
     
     var tSock = new TSock; 
-    tSock.onRecv(function(msg) {
+    tSock.onReceive(function(msg) {
       ok(true, "Function executed");
       equals(msg.constructor,DD.Message, "Is a DD.Message");
       equals(msg.name, expectedMsg.name);
@@ -115,13 +115,14 @@ module("DD.WebSocket");
 module("DD.HTTP");
 
   test("Creation", function() {
-    var dht = new DD.HTTP;
-    equals(dht.constructor, DD.HTTP, "Constructor Match");
+    var dht = new DD.HTTPClient;
+    equals(dht.constructor, DD.HTTPClient, "Constructor Match");
   });
   
+  // Not sure how to mock / stub this into working
   test("Sending a message should call a get posting a JSON representation of the data",function() {
     expect(1);
-    var tHTTP = new THTTP;
+    var tHTTP = THTTP;
     tHTTP.sendMessage();
   });
 
