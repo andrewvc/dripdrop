@@ -179,7 +179,7 @@ class DripDrop
       zmq_handler(DripDrop::Mongrel2Handler, [ZMQ::PULL, ZMQ::PUB], addresses, [:connect, :connect], opts)
     end
 
-    # Creates a ZMQ::SUB type socket. Can only receive messages via +on_recv+.
+    # Creates a ZMQ::SUB type socket. Can only receive messages via +on_receive+.
     # zmq_subscribe sockets have a +topic_filter+ option, which restricts which
     # messages they can receive. It takes a regexp as an option.
     def zmq_subscribe(address,socket_ctype,opts={},&block)
@@ -191,7 +191,7 @@ class DripDrop
       zmq_handler(DripDrop::ZMQPubHandler,ZMQ::PUB,address,socket_ctype,opts)
     end
 
-    # Creates a ZMQ::PULL type socket. Can only receive messages via +on_recv+
+    # Creates a ZMQ::PULL type socket. Can only receive messages via +on_receive+
     def zmq_pull(address,socket_ctype,opts={},&block)
       zmq_handler(DripDrop::ZMQPullHandler,ZMQ::PULL,address,socket_ctype,opts)
     end
@@ -205,11 +205,11 @@ class DripDrop
     # powerful, so their functionality is currently limited. XREP sockets in DripDrop can reply
     # to the original source of the message.
     #
-    # Receiving with XREP sockets in DripDrop is different than other types of sockets, on_recv
+    # Receiving with XREP sockets in DripDrop is different than other types of sockets, on_receive
     # passes 2 arguments to its callback, +message+, and +response+. A minimal example is shown below:
     #
     #    
-    #    zmq_xrep(z_addr, :bind).on_recv do |message,response|
+    #    zmq_xrep(z_addr, :bind).on_receive do |message,response|
     #      response.send_message(message)
     #    end
     #
@@ -223,12 +223,12 @@ class DripDrop
     end
 
     # Binds an EM websocket server connection to +address+. takes blocks for
-    # +on_open+, +on_recv+, +on_close+ and +on_error+.
+    # +on_open+, +on_receive+, +on_close+ and +on_error+.
     #
-    # For example +on_recv+ could be used to echo incoming messages thusly:
+    # For example +on_receive+ could be used to echo incoming messages thusly:
     #    websocket_server(addr).on_open {|conn|
     #      ws.send_message(:name => 'ws_open_ack')
-    #    }.on_recv {|msg,conn|
+    #    }.on_receive {|msg,conn|
     #      conn.send(msg)
     #    }.on_close {|conn|
     #    }.on_error {|reason,conn|
@@ -249,7 +249,7 @@ class DripDrop
     end
     
     # Starts a new Thin HTTP server listening on address.
-    # Can have an +on_recv+ handler that gets passed +msg+ and +response+ args.
+    # Can have an +on_receive+ handler that gets passed +msg+ and +response+ args.
     #    http_server(addr) {|msg,response| response.send_message(msg)}
     def http_server(address,opts={},&block)
       uri     = URI.parse(address)
