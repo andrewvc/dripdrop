@@ -32,7 +32,7 @@ Let's start by looking at the normalized communication interface in a simple app
         route :my_client, :http_client, 'http://127.0.0.1:2201'
         
         # Our http server is a simple time server
-        my_server.on_recv do |message,response|
+        my_server.on_receive do |message,response|
           response.send_message(:name => 'time', :body => {'time' => Time.now.to_s})
         end
         
@@ -57,7 +57,7 @@ What we've done here is use HTTP as a simple messaging protocol. Yes, we've thro
 
 That replaces the HTTP server and client with ultra-high performance zeromq sockets. Now, protocols have varying strengths and weaknesses, and ZeroMQ is not HTTP necessarily, for instance, given a :zmq_pub socket, you can only send_messages, but there is no response message, because :zmq_pub is the publishing end of a request/reply pattern. The messaging API attempts to reduce all methods on sockets to the following set:
 
-  * on_recv (sometimes takes a block with |message,response| if it can send a response)
+  * on_receive (sometimes takes a block with |message,response| if it can send a response)
   * send_message
   * on_open  (Websockets only)
   * on_close (Websockets only)
@@ -88,7 +88,7 @@ The tools mentioned above are useful, but if you try and build a larger app you'
     # The method #run here is merely a convention
     class StatsCollector < DripDrop::Node::Nodelet
       def run
-        stats_raw.on_recv do |raw_stat_msg|
+        stats_raw.on_receive do |raw_stat_msg|
           # Custom filtering code could go here...
           stats_filtered.send_message(raw_stat_msg)
         end
@@ -103,7 +103,7 @@ The tools mentioned above are useful, but if you try and build a larger app you'
       end
       
       def run
-        stats_ingress.on_recv do |message|
+        stats_ingress.on_receive do |message|
           @name_counts[message.name] += 1
           puts @name_counts.inspect
         end
