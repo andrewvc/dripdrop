@@ -1,0 +1,21 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>untitled</title>
+  <script type="text/javascript" charset="utf-8" src='https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js'></script>
+  <script type="text/javascript" charset="utf-8">
+    $(function(){
+      var ws = new WebSocket('ws://127.0.0.1:9292');
+      ws.onmessage = function(message) {$('#time').text(message.data)};
+      ws.onerror = function(err) {console.log(err)};
+      ws.onclose = function(close) {console.log(close)};
+    });
+  </script>
+
+</head>
+
+<body>
+
+  <div id='time'></div>
+
+</body>
+</html>
