@@ -68,48 +68,67 @@ That replaces the HTTP server and client with ultra-high performance zeromq sock
 The tools mentioned above are useful, but if you try and build a larger app you'll quickly find them lacking. The callbacks get tricky, and mixing your logic up in a single #action method becomes messy. That's why we have nodelets in DripDrop. Here's a trivial example.
 
     class MyApp < DripDrop::Node
-      # This will instantiate a new StatsCollector object, and define the
-      # stats_raw and stats_filtered methods inside it.
-      nodelet :stats_collector, StatsCollector do |nodelet|
-        nodelet.route :stats_raw,      :zmq_pull, 'tcp://127.0.0.1:2301', :bind
-        nodelet.route :stats_filtered, :zmq_push, 'tcp://127.0.0.1:2302', :bind
+      def initialize(mode=:all)
+        super()
+        @mode = mode
       end
       
-      nodelet :stats_processor, StatsProcessor do |nodelet|
-        nodelet.route :stats_ingress, :zmq_pull, 'tcp://127.0.0.1:2302', :bind
-      end
+      def action
+        # This will instantiate a new StatsCollector object, and define the
+        # stats_raw and stats_filtered methods inside it.
+        nodelet :stats_producer, StatsProducer do |n|
+          n.route :stats_output, :zmq_push, 'tcp://127.0.0.1:2301', :bind
+        end
 
-      # The nodelets method gives you access to all defined nodelets
-      # We created a #run method on each nodelet we call here.
-      nodelets.each {|n| n.run}
+        nodelet :stats_collector, StatsCollector do |n|
+          n.route :stats_raw, :zmq_pull, 'tcp://127.0.0.1:2301', :connect
+          n.route :stats_filtered, :zmq_push, 'tcp://127.0.0.1:2302', :bind
+        end
+
+        nodelet :stats_processor, StatsProcessor do |n|
+          n.route :stats_ingress, :zmq_pull, 'tcp://127.0.0.1:2302', :connect
+        end
+
+        # The nodelets method gives you access to all defined nodelets as a hash
+        # We created a #run method on each nodelet we call here.
+        nodelets.each_value { |n| n.run }
+      end
     end
 
     # You must subclass Nodelet
     # The method #run here is merely a convention
+    class StatsProducer < DripDrop::Node::Nodelet
+      def run
+        EM::PeriodicTimer.new(1) do
+          stats_output.send_message :name => 'stat', :body => Time.now.to_s
+        end
+      end
+    end
+
     class StatsCollector < DripDrop::Node::Nodelet
       def run
         stats_raw.on_receive do |raw_stat_msg|
-          # Custom filtering code could go here...
           stats_filtered.send_message(raw_stat_msg)
         end
       end
     end
-  
+
     class StatsProcessor < DripDrop::Node::Nodelet
       # Initialize shouldn't be subclassed on a Nodelet, this gets called
       # After the nodelet is instantiated
       def configure
         @name_counts = Hash.new(0)
       end
-      
+
       def run
         stats_ingress.on_receive do |message|
           @name_counts[message.name] += 1
           puts @name_counts.inspect
+          puts "received message.body: " + message.body
         end
       end
     end
-    
+
     MyApp.new.start!
 
 # Custom Messages
