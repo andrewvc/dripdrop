@@ -1,3 +1,7 @@
+# Notice:
+
+  DripDrop was a fun experiment, and I may start using it again in the future, but it is not actively maintained. There are no known bugs however, and its reasonably well tested (both in a bunch of sample apps I built and unit tests), so it should be OK to use, but be aware that if you find any issues with it, or want features added to it, it'll be up to you to hack on it! 
+
 # DripDrop
 
 ## INSTALLATION NOTES:
