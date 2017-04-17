@@ -176,11 +176,11 @@ While you will have to write your own executable wrappers suitable for your own 
     # is skipped as well
     MyApp.new(:run_list => [:service_two]).start!
 
-#RDocs
+# RDocs
 
 RDocs can be found [here](http://www.rdoc.info/github/andrewvc/dripdrop/master/frames). Most of the interesting stuff is in the [Node](http://www.rdoc.info/github/andrewvc/dripdrop/master/DripDrop/Node) and [Message](http://www.rdoc.info/github/andrewvc/dripdrop/master/DripDrop/Message) classes.
 
-#Contributors
+# Contributors
 
 * Andrew Cholakian: [andrewvc](http://github.com/andrewvc)
 * John W Higgins: [wishdev](http://github.com/wishdev)
